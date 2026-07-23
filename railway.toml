@@ -1,0 +1,8 @@
+# Railway deployment config
+[build]
+  builder = "nixpacks"
+
+[deploy]
+  startCommand = "cd server && npm run db:migrate:prod && npm start"
+  healthcheckPath = "/api/ping"
+  restartPolicyType = "on_failure"

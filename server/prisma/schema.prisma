@@ -1,0 +1,159 @@
+// This is your Prisma schema file
+// Local dev: DATABASE_URL=file:/path/to/app.db  (SQLite)
+// Production: DATABASE_URL=postgresql://...      (Postgres on Railway)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DATABASE_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+model Household {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users           User[]
+  groceryLists    GroceryList[]
+  groceryItems    GroceryItem[]
+  bills           Bill[]
+  chores          Chore[]
+  inventory       InventoryItem[]
+  meals           Meal[]
+  mealPlanEntries MealPlanEntry[]
+}
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  name        String
+  password    String
+  role        String    @default("member")
+  isShared    Boolean   @default(false)
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+}
+
+model GroceryList {
+  id          String        @id @default(uuid())
+  name        String
+  focusGroups String        @default("[]")
+  householdId String
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  items       GroceryItem[]
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+}
+
+model GroceryItem {
+  id               String      @id @default(uuid())
+  name             String
+  category         String      @default("other")
+  quantity         String      @default("")
+  note             String      @default("")
+  bought           Boolean     @default(false)
+  monthlyFrequency Float?
+  shelfLifeDays    Int?
+  listId           String
+  list             GroceryList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  householdId      String
+  household        Household   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt        DateTime    @default(now())
+}
+
+model Bill {
+  id          String    @id @default(uuid())
+  name        String
+  amount      Float
+  currency    String    @default("USD")
+  category    String    @default("other")
+  dueDay      Int?
+  frequency   String    @default("monthly")
+  isPaid      Boolean   @default(false)
+  paidAt      DateTime?
+  nextDueDate String?
+  notes       String    @default("")
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+}
+
+model Chore {
+  id              String            @id @default(uuid())
+  name            String
+  assignedTo      String            @default("")
+  frequency       String            @default("weekly")
+  frequencyDays   String            @default("[]")
+  lastCompletedAt DateTime?
+  nextDueDate     String?
+  notes           String            @default("")
+  householdId     String
+  household       Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  completions     ChoreCompletion[]
+  createdAt       DateTime          @default(now())
+}
+
+model ChoreCompletion {
+  id          String   @id @default(uuid())
+  choreId     String
+  chore       Chore    @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+  completedBy String   @default("")
+}
+
+model InventoryItem {
+  id                  String    @id @default(uuid())
+  name                String
+  category            String    @default("other")
+  brand               String    @default("")
+  model               String    @default("")
+  purchaseDate        String?
+  purchasePrice       Float?
+  warrantyExpiry      String?
+  lastMaintenanceDate String?
+  nextMaintenanceDate String?
+  maintenanceNotes    String    @default("")
+  location            String    @default("")
+  notes               String    @default("")
+  householdId         String
+  household           Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt           DateTime  @default(now())
+}
+
+model Meal {
+  id              String          @id @default(uuid())
+  name            String
+  type            String          @default("dinner")
+  ingredients     String          @default("[]")
+  prepTimeMinutes Int?
+  cookTimeMinutes Int?
+  servings        Int?
+  notes           String          @default("")
+  householdId     String
+  household       Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  planEntries     MealPlanEntry[] @relation("BreakfastMeal")
+  lunchEntries    MealPlanEntry[] @relation("LunchMeal")
+  dinnerEntries   MealPlanEntry[] @relation("DinnerMeal")
+  createdAt       DateTime        @default(now())
+}
+
+model MealPlanEntry {
+  id            String    @id @default(uuid())
+  date          String
+  breakfastId   String?
+  lunchId       String?
+  dinnerId      String?
+  breakfast     Meal?     @relation("BreakfastMeal", fields: [breakfastId], references: [id], onDelete: SetNull)
+  lunch         Meal?     @relation("LunchMeal", fields: [lunchId], references: [id], onDelete: SetNull)
+  dinner        Meal?     @relation("DinnerMeal", fields: [dinnerId], references: [id], onDelete: SetNull)
+  notes         String    @default("")
+  householdId   String
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+
+  @@unique([date, householdId])
+}
