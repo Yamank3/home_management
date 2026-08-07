@@ -1,232 +1,321 @@
-// Product knowledge base: maps common grocery item names to auto-fill metadata.
-// Keys are lowercase. Lookup does fuzzy prefix/substring matching.
+// Indian market product knowledge base
+// Keywords include English names, Hindi names, and common transliterations
+// Quantities use Indian market standards (kg, litre, packet, piece)
 
 const PRODUCTS = [
-  // --- Produce ---
-  { keywords: ['apple','apples'],           category:'produce',       quantity:'1 kg',    monthlyFrequency:8,  shelfLifeDays:30  },
-  { keywords: ['banana','bananas'],          category:'produce',       quantity:'1 bunch', monthlyFrequency:8,  shelfLifeDays:7   },
-  { keywords: ['orange','oranges'],          category:'produce',       quantity:'1 kg',    monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['lemon','lemons'],            category:'produce',       quantity:'4 pcs',   monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['lime','limes'],              category:'produce',       quantity:'4 pcs',   monthlyFrequency:2,  shelfLifeDays:21  },
-  { keywords: ['strawberr'],                 category:'produce',       quantity:'250g',     monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['blueberr'],                  category:'produce',       quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:5   },
-  { keywords: ['grape','grapes'],            category:'produce',       quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:7   },
-  { keywords: ['watermelon'],                category:'produce',       quantity:'1 whole', monthlyFrequency:2,  shelfLifeDays:7   },
-  { keywords: ['mango','mangoes'],           category:'produce',       quantity:'2 pcs',   monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['avocado'],                   category:'produce',       quantity:'2 pcs',   monthlyFrequency:4,  shelfLifeDays:4   },
-  { keywords: ['tomato','tomatoes'],         category:'produce',       quantity:'500g',     monthlyFrequency:8,  shelfLifeDays:7   },
-  { keywords: ['onion','onions'],            category:'produce',       quantity:'1 kg',    monthlyFrequency:4,  shelfLifeDays:30  },
-  { keywords: ['garlic'],                    category:'produce',       quantity:'1 bulb',  monthlyFrequency:4,  shelfLifeDays:30  },
-  { keywords: ['ginger'],                    category:'produce',       quantity:'100g',     monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['carrot','carrots'],          category:'produce',       quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['potato','potatoes'],         category:'produce',       quantity:'1 kg',    monthlyFrequency:4,  shelfLifeDays:30  },
-  { keywords: ['sweet potato'],              category:'produce',       quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:21  },
-  { keywords: ['broccoli'],                  category:'produce',       quantity:'1 head',  monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['cauliflower'],               category:'produce',       quantity:'1 head',  monthlyFrequency:2,  shelfLifeDays:5   },
-  { keywords: ['spinach'],                   category:'produce',       quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:4   },
-  { keywords: ['lettuce'],                   category:'produce',       quantity:'1 head',  monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['cucumber','cucumbers'],      category:'produce',       quantity:'2 pcs',   monthlyFrequency:4,  shelfLifeDays:7   },
-  { keywords: ['bell pepper','capsicum'],    category:'produce',       quantity:'3 pcs',   monthlyFrequency:4,  shelfLifeDays:7   },
-  { keywords: ['zucchini','courgette'],      category:'produce',       quantity:'2 pcs',   monthlyFrequency:2,  shelfLifeDays:7   },
-  { keywords: ['mushroom','mushrooms'],      category:'produce',       quantity:'250g',     monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['celery'],                    category:'produce',       quantity:'1 bunch', monthlyFrequency:2,  shelfLifeDays:14  },
-  { keywords: ['corn','sweetcorn'],          category:'produce',       quantity:'2 cobs',  monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['peas'],                      category:'produce',       quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['kale'],                      category:'produce',       quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:5   },
-  { keywords: ['cabbage'],                   category:'produce',       quantity:'1 head',  monthlyFrequency:2,  shelfLifeDays:14  },
-  { keywords: ['eggplant','aubergine'],      category:'produce',       quantity:'1 pc',    monthlyFrequency:2,  shelfLifeDays:7   },
-  { keywords: ['leek','leeks'],              category:'produce',       quantity:'2 pcs',   monthlyFrequency:2,  shelfLifeDays:7   },
-  { keywords: ['asparagus'],                 category:'produce',       quantity:'1 bunch', monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['fresh herb','parsley','coriander','cilantro','basil','mint','thyme','rosemary'], category:'produce', quantity:'1 bunch', monthlyFrequency:4, shelfLifeDays:7 },
 
-  // --- Dairy & Eggs ---
-  { keywords: ['milk'],                      category:'dairy',         quantity:'2 L',     monthlyFrequency:8,  shelfLifeDays:7   },
-  { keywords: ['oat milk'],                  category:'dairy',         quantity:'1 L',     monthlyFrequency:4,  shelfLifeDays:10  },
-  { keywords: ['almond milk'],               category:'dairy',         quantity:'1 L',     monthlyFrequency:4,  shelfLifeDays:10  },
-  { keywords: ['soy milk'],                  category:'dairy',         quantity:'1 L',     monthlyFrequency:4,  shelfLifeDays:10  },
-  { keywords: ['egg','eggs'],                category:'dairy',         quantity:'12 pcs',  monthlyFrequency:8,  shelfLifeDays:28  },
-  { keywords: ['butter'],                    category:'dairy',         quantity:'250g',     monthlyFrequency:4,  shelfLifeDays:30  },
-  { keywords: ['cheese'],                    category:'dairy',         quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['cheddar'],                   category:'dairy',         quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:21  },
-  { keywords: ['mozzarella'],                category:'dairy',         quantity:'125g',     monthlyFrequency:4,  shelfLifeDays:7   },
-  { keywords: ['parmesan'],                  category:'dairy',         quantity:'100g',     monthlyFrequency:2,  shelfLifeDays:30  },
-  { keywords: ['cream cheese'],              category:'dairy',         quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:14  },
-  { keywords: ['sour cream'],                category:'dairy',         quantity:'200ml',    monthlyFrequency:2,  shelfLifeDays:14  },
-  { keywords: ['yoghurt','yogurt'],          category:'dairy',         quantity:'500g',     monthlyFrequency:8,  shelfLifeDays:14  },
-  { keywords: ['greek yogurt','greek yoghurt'], category:'dairy',      quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:14  },
-  { keywords: ['cream','double cream','single cream','heavy cream'], category:'dairy', quantity:'300ml', monthlyFrequency:4, shelfLifeDays:10 },
-  { keywords: ['whipping cream'],            category:'dairy',         quantity:'300ml',    monthlyFrequency:2,  shelfLifeDays:10  },
-  { keywords: ['cottage cheese'],            category:'dairy',         quantity:'250g',     monthlyFrequency:2,  shelfLifeDays:7   },
-  { keywords: ['ice cream'],                 category:'frozen',        quantity:'500ml',    monthlyFrequency:2,  shelfLifeDays:90  },
+  // ─── PRODUCE / SABZI ───────────────────────────────────────────────────────
 
-  // --- Meat & Poultry ---
-  { keywords: ['chicken breast'],            category:'meat',          quantity:'500g',     monthlyFrequency:8,  shelfLifeDays:3   },
-  { keywords: ['chicken thigh','chicken leg'], category:'meat',        quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:3   },
-  { keywords: ['whole chicken'],             category:'meat',          quantity:'1 whole', monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['minced beef','ground beef'], category:'meat',          quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:2   },
-  { keywords: ['beef steak','steak'],        category:'meat',          quantity:'300g',     monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['beef mince'],                category:'meat',          quantity:'500g',     monthlyFrequency:4,  shelfLifeDays:2   },
-  { keywords: ['lamb'],                      category:'meat',          quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['pork chop','pork chops'],    category:'meat',          quantity:'400g',     monthlyFrequency:2,  shelfLifeDays:3   },
-  { keywords: ['bacon'],                     category:'meat',          quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:7   },
-  { keywords: ['sausage','sausages'],        category:'meat',          quantity:'400g',     monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['ham'],                       category:'deli',          quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['turkey'],                    category:'meat',          quantity:'500g',     monthlyFrequency:1,  shelfLifeDays:3   },
+  // Leafy vegetables
+  { keywords: ['spinach','palak','paalak'],                    category:'produce', quantity:'1 bunch',   monthlyFrequency:8,  shelfLifeDays:7  },
+  { keywords: ['fenugreek','methi'],                           category:'produce', quantity:'1 bunch',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['coriander','dhania','dhaniya','cilantro'],     category:'produce', quantity:'1 bunch',   monthlyFrequency:8,  shelfLifeDays:7  },
+  { keywords: ['mint','pudina'],                               category:'produce', quantity:'1 bunch',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['curry leaves','kadi patta','kadhi patta'],     category:'produce', quantity:'1 bunch',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['mustard leaves','sarson','sarson ka saag'],    category:'produce', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['amaranth','chaulai'],                          category:'produce', quantity:'1 bunch',   monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['drumstick','moringa','sahjan','sehjan'],       category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['cabbage','bandh gobhi','band gobhi'],          category:'produce', quantity:'1 head',    monthlyFrequency:4,  shelfLifeDays:7  },
 
-  // --- Seafood ---
-  { keywords: ['salmon'],                    category:'seafood',       quantity:'300g',     monthlyFrequency:4,  shelfLifeDays:2   },
-  { keywords: ['tuna steak'],                category:'seafood',       quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:2   },
-  { keywords: ['cod'],                       category:'seafood',       quantity:'300g',     monthlyFrequency:2,  shelfLifeDays:2   },
-  { keywords: ['prawn','prawns','shrimp'],   category:'seafood',       quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:2   },
-  { keywords: ['fish finger','fish fingers'], category:'frozen',       quantity:'300g',     monthlyFrequency:2,  shelfLifeDays:180 },
-  { keywords: ['canned tuna','tinned tuna'], category:'canned-goods',  quantity:'2 cans',  monthlyFrequency:4,  shelfLifeDays:730 },
-  { keywords: ['canned salmon'],             category:'canned-goods',  quantity:'1 can',   monthlyFrequency:2,  shelfLifeDays:730 },
+  // Gourds & squash
+  { keywords: ['bottle gourd','lauki','ghiya','doodhi'],       category:'produce', quantity:'1 pc',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['bitter gourd','karela'],                       category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['ridge gourd','turai','torai'],                 category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['pointed gourd','parwal'],                      category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['ivy gourd','tindli','tindora','kundru'],        category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['ash gourd','petha','safed petha'],             category:'produce', quantity:'500g',      monthlyFrequency:1,  shelfLifeDays:14 },
+  { keywords: ['pumpkin','kaddu'],                             category:'produce', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:14 },
+  { keywords: ['snake gourd','chichinda'],                     category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
 
-  // --- Bakery ---
-  { keywords: ['bread','white bread','brown bread','wholemeal bread'], category:'bakery', quantity:'1 loaf', monthlyFrequency:8, shelfLifeDays:5 },
-  { keywords: ['sourdough'],                 category:'bakery',        quantity:'1 loaf', monthlyFrequency:4,  shelfLifeDays:5   },
-  { keywords: ['baguette'],                  category:'bakery',        quantity:'1 pc',   monthlyFrequency:4,  shelfLifeDays:2   },
-  { keywords: ['pita','pitta'],              category:'bakery',        quantity:'6 pcs',  monthlyFrequency:2,  shelfLifeDays:5   },
-  { keywords: ['tortilla','tortillas','wrap','wraps'], category:'bakery', quantity:'8 pcs', monthlyFrequency:4, shelfLifeDays:7  },
-  { keywords: ['roll','rolls','bun','buns'], category:'bakery',        quantity:'6 pcs',  monthlyFrequency:4,  shelfLifeDays:3   },
-  { keywords: ['croissant'],                 category:'bakery',        quantity:'4 pcs',  monthlyFrequency:2,  shelfLifeDays:2   },
-  { keywords: ['bagel','bagels'],            category:'bakery',        quantity:'4 pcs',  monthlyFrequency:2,  shelfLifeDays:5   },
+  // Everyday vegetables
+  { keywords: ['potato','aloo','aaloo'],                       category:'produce', quantity:'1 kg',      monthlyFrequency:8,  shelfLifeDays:30 },
+  { keywords: ['onion','pyaaz','pyaz','kanda'],                category:'produce', quantity:'1 kg',      monthlyFrequency:8,  shelfLifeDays:30 },
+  { keywords: ['tomato','tamatar'],                            category:'produce', quantity:'500g',      monthlyFrequency:8,  shelfLifeDays:7  },
+  { keywords: ['green chilli','hari mirch','hara mircha'],     category:'produce', quantity:'100g',      monthlyFrequency:8,  shelfLifeDays:7  },
+  { keywords: ['ginger','adrak'],                              category:'produce', quantity:'100g',      monthlyFrequency:8,  shelfLifeDays:14 },
+  { keywords: ['garlic','lahsun','lasun'],                     category:'produce', quantity:'100g',      monthlyFrequency:8,  shelfLifeDays:30 },
+  { keywords: ['cauliflower','gobhi','phool gobhi','fulkopir'], category:'produce', quantity:'1 head',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['brinjal','eggplant','baingan'],                category:'produce', quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['broccoli','hari gobhi'],                       category:'produce', quantity:'1 head',    monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['cucumber','kheera','kakdi'],                   category:'produce', quantity:'2 pcs',     monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['okra','bhindi','lady finger'],                 category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['capsicum','shimla mirch','bell pepper'],       category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:5  },
+  { keywords: ['carrot','gajar'],                              category:'produce', quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:14 },
+  { keywords: ['peas','matar','green peas'],                   category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['sweet potato','shakarkandi'],                  category:'produce', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:14 },
+  { keywords: ['raw banana','kachcha kela','plantain'],        category:'produce', quantity:'4 pcs',     monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['raw papaya','kachcha papita'],                 category:'produce', quantity:'1 pc',      monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['yam','suran','jimikand'],                      category:'produce', quantity:'500g',      monthlyFrequency:1,  shelfLifeDays:14 },
+  { keywords: ['colocasia','arbi','taro'],                     category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['radish','mooli'],                              category:'produce', quantity:'2 pcs',     monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['beetroot','chukandar'],                        category:'produce', quantity:'2 pcs',     monthlyFrequency:2,  shelfLifeDays:14 },
+  { keywords: ['mushroom','mushrooms','khumb'],                category:'produce', quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['spring onion','hara pyaaz','green onion'],     category:'produce', quantity:'1 bunch',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['french beans','beans','fansi'],                category:'produce', quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['broad beans','sem','valor papdi'],             category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['lotus stem','kamal kakdi','bhein'],            category:'produce', quantity:'250g',      monthlyFrequency:1,  shelfLifeDays:5  },
 
-  // --- Pasta & Grains ---
-  { keywords: ['pasta','spaghetti','penne','fusilli','rigatoni','fettuccine'], category:'pasta-grains', quantity:'500g', monthlyFrequency:4, shelfLifeDays:730 },
-  { keywords: ['rice','white rice','brown rice','basmati','jasmine rice'], category:'pasta-grains', quantity:'1 kg', monthlyFrequency:4, shelfLifeDays:730 },
-  { keywords: ['noodle','noodles','ramen','udon','soba'], category:'pasta-grains', quantity:'250g', monthlyFrequency:4, shelfLifeDays:365 },
-  { keywords: ['oat','oats','porridge','rolled oats'], category:'pasta-grains', quantity:'500g', monthlyFrequency:4, shelfLifeDays:365 },
-  { keywords: ['flour','plain flour','self-raising flour','bread flour'], category:'pantry', quantity:'1 kg', monthlyFrequency:2, shelfLifeDays:365 },
-  { keywords: ['quinoa'],                    category:'pasta-grains',  quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['couscous'],                  category:'pasta-grains',  quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['lentil','lentils'],          category:'canned-goods',  quantity:'400g',     monthlyFrequency:2,  shelfLifeDays:730 },
+  // Fruits
+  { keywords: ['banana','kela'],                               category:'produce', quantity:'1 dozen',   monthlyFrequency:8,  shelfLifeDays:5  },
+  { keywords: ['apple','seb'],                                 category:'produce', quantity:'1 kg',      monthlyFrequency:4,  shelfLifeDays:14 },
+  { keywords: ['mango','aam'],                                 category:'produce', quantity:'1 kg',      monthlyFrequency:4,  shelfLifeDays:4  },
+  { keywords: ['papaya','papita'],                             category:'produce', quantity:'1 pc',      monthlyFrequency:4,  shelfLifeDays:4  },
+  { keywords: ['guava','amrood'],                              category:'produce', quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:5  },
+  { keywords: ['pomegranate','anar'],                          category:'produce', quantity:'2 pcs',     monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['orange','santra','narangi'],                   category:'produce', quantity:'1 kg',      monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['grapes','angoor'],                             category:'produce', quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:5  },
+  { keywords: ['watermelon','tarbuz'],                         category:'produce', quantity:'1 pc',      monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['muskmelon','kharbooja'],                       category:'produce', quantity:'1 pc',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['pineapple','ananas'],                          category:'produce', quantity:'1 pc',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['coconut','nariyal'],                           category:'produce', quantity:'1 pc',      monthlyFrequency:4,  shelfLifeDays:14 },
+  { keywords: ['lemon','nimbu'],                               category:'produce', quantity:'6 pcs',     monthlyFrequency:8,  shelfLifeDays:14 },
+  { keywords: ['mosambi','sweet lime'],                        category:'produce', quantity:'1 kg',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['chikoo','sapodilla','sapota'],                 category:'produce', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['litchi','lychee'],                             category:'produce', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['jamun','java plum'],                           category:'produce', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:2  },
+  { keywords: ['custard apple','sitaphal','sharifa'],          category:'produce', quantity:'2 pcs',     monthlyFrequency:1,  shelfLifeDays:3  },
+  { keywords: ['tamarind','imli'],                             category:'pantry',  quantity:'100g',      monthlyFrequency:2,  shelfLifeDays:180 },
 
-  // --- Canned Goods ---
-  { keywords: ['canned tomato','chopped tomato','tinned tomato'], category:'canned-goods', quantity:'2 cans', monthlyFrequency:8, shelfLifeDays:730 },
-  { keywords: ['tomato paste','tomato puree'], category:'canned-goods', quantity:'1 can', monthlyFrequency:4, shelfLifeDays:730  },
-  { keywords: ['baked bean','baked beans'],  category:'canned-goods',  quantity:'2 cans',  monthlyFrequency:4,  shelfLifeDays:730 },
-  { keywords: ['chickpea','chickpeas'],      category:'canned-goods',  quantity:'2 cans',  monthlyFrequency:4,  shelfLifeDays:730 },
-  { keywords: ['kidney bean','kidney beans'], category:'canned-goods', quantity:'1 can',   monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['coconut milk'],              category:'canned-goods',  quantity:'400ml can', monthlyFrequency:4, shelfLifeDays:730 },
-  { keywords: ['corn can','canned corn','sweetcorn can'], category:'canned-goods', quantity:'1 can', monthlyFrequency:4, shelfLifeDays:730 },
-  { keywords: ['soup','canned soup'],        category:'canned-goods',  quantity:'2 cans',  monthlyFrequency:4,  shelfLifeDays:730 },
+  // ─── DAIRY / DUDH DAIRY ────────────────────────────────────────────────────
 
-  // --- Pantry & Spices ---
-  { keywords: ['olive oil'],                 category:'pantry',        quantity:'500ml',    monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['vegetable oil','sunflower oil'], category:'pantry',    quantity:'1 L',      monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['salt'],                      category:'pantry',        quantity:'1 kg',     monthlyFrequency:1,  shelfLifeDays:1825 },
-  { keywords: ['black pepper','pepper'],     category:'pantry',        quantity:'50g',      monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['sugar','white sugar','caster sugar'], category:'pantry', quantity:'1 kg', monthlyFrequency:2, shelfLifeDays:730  },
-  { keywords: ['brown sugar'],               category:'pantry',        quantity:'500g',     monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['honey'],                     category:'pantry',        quantity:'340g',     monthlyFrequency:1,  shelfLifeDays:1825 },
-  { keywords: ['soy sauce'],                 category:'pantry',        quantity:'150ml',    monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['vinegar','white vinegar','apple cider vinegar','balsamic'], category:'pantry', quantity:'500ml', monthlyFrequency:1, shelfLifeDays:1825 },
-  { keywords: ['ketchup','tomato ketchup'],  category:'pantry',        quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['mustard'],                   category:'pantry',        quantity:'200g',     monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['mayonnaise'],                category:'pantry',        quantity:'400g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['hot sauce','sriracha'],      category:'pantry',        quantity:'250ml',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['stock','chicken stock','beef stock','vegetable stock'], category:'pantry', quantity:'1 L', monthlyFrequency:4, shelfLifeDays:365 },
-  { keywords: ['peanut butter'],             category:'pantry',        quantity:'340g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['jam','strawberry jam','marmalade'], category:'pantry', quantity:'340g',    monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['nutella','chocolate spread'], category:'pantry',       quantity:'400g',     monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['cumin'],                     category:'pantry',        quantity:'50g',      monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['paprika'],                   category:'pantry',        quantity:'50g',      monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['turmeric'],                  category:'pantry',        quantity:'50g',      monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['cinnamon'],                  category:'pantry',        quantity:'50g',      monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['baking soda','bicarbonate'], category:'pantry',        quantity:'200g',     monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['baking powder'],             category:'pantry',        quantity:'100g',     monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['yeast'],                     category:'pantry',        quantity:'7g sachet', monthlyFrequency:1, shelfLifeDays:365 },
-  { keywords: ['cocoa powder'],              category:'pantry',        quantity:'200g',     monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['milk','dudh','doodh'],                         category:'dairy',   quantity:'1 litre',   monthlyFrequency:30, shelfLifeDays:2  },
+  { keywords: ['curd','dahi','yogurt','yoghurt'],              category:'dairy',   quantity:'500g',      monthlyFrequency:12, shelfLifeDays:4  },
+  { keywords: ['paneer','cottage cheese'],                     category:'dairy',   quantity:'200g',      monthlyFrequency:8,  shelfLifeDays:4  },
+  { keywords: ['ghee','clarified butter'],                     category:'dairy',   quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['butter','makhan','makkhan'],                   category:'dairy',   quantity:'100g',      monthlyFrequency:4,  shelfLifeDays:30 },
+  { keywords: ['cream','malai','fresh cream'],                 category:'dairy',   quantity:'200ml',     monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['khoya','mawa','khoa'],                         category:'dairy',   quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['lassi'],                                       category:'dairy',   quantity:'500ml',     monthlyFrequency:4,  shelfLifeDays:2  },
+  { keywords: ['buttermilk','chaas','chach','mattha'],         category:'dairy',   quantity:'500ml',     monthlyFrequency:8,  shelfLifeDays:2  },
+  { keywords: ['egg','anda','eggs'],                           category:'dairy',   quantity:'12 pcs',    monthlyFrequency:8,  shelfLifeDays:21 },
+  { keywords: ['condensed milk','mithai ka doodh'],            category:'dairy',   quantity:'400g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['cheese','cheese slice'],                       category:'dairy',   quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:21 },
 
-  // --- Frozen ---
-  { keywords: ['frozen pea','frozen peas'],  category:'frozen',        quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['frozen vegetable'],          category:'frozen',        quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['frozen pizza'],              category:'frozen',        quantity:'1 pc',    monthlyFrequency:2,  shelfLifeDays:180 },
-  { keywords: ['frozen chips','frozen fries'], category:'frozen',      quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['frozen berries'],            category:'frozen',        quantity:'500g',     monthlyFrequency:2,  shelfLifeDays:365 },
+  // ─── MEAT & POULTRY / MAAS ─────────────────────────────────────────────────
 
-  // --- Beverages ---
-  { keywords: ['water','mineral water','sparkling water'], category:'beverages', quantity:'6×500ml', monthlyFrequency:8, shelfLifeDays:365 },
-  { keywords: ['orange juice','apple juice','juice'], category:'beverages', quantity:'1 L', monthlyFrequency:4, shelfLifeDays:7  },
-  { keywords: ['coffee','instant coffee','ground coffee'], category:'beverages', quantity:'200g', monthlyFrequency:2, shelfLifeDays:365 },
-  { keywords: ['tea','green tea','herbal tea','black tea'], category:'beverages', quantity:'40 bags', monthlyFrequency:2, shelfLifeDays:730 },
-  { keywords: ['cola','coke','pepsi'],       category:'beverages',     quantity:'6 cans',  monthlyFrequency:4,  shelfLifeDays:270 },
-  { keywords: ['energy drink','red bull'],   category:'beverages',     quantity:'4 cans',  monthlyFrequency:2,  shelfLifeDays:270 },
-  { keywords: ['protein shake','protein powder'], category:'health-foods', quantity:'1 kg', monthlyFrequency:2, shelfLifeDays:365 },
+  { keywords: ['chicken','murga','murgi'],                     category:'meat',    quantity:'500g',      monthlyFrequency:8,  shelfLifeDays:2  },
+  { keywords: ['chicken breast','chicken tikka'],              category:'meat',    quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:2  },
+  { keywords: ['chicken curry cut','kadai chicken'],           category:'meat',    quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:2  },
+  { keywords: ['mutton','gosht','bakra','lamb'],               category:'meat',    quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:2  },
+  { keywords: ['minced mutton','keema','kheema'],              category:'meat',    quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:2  },
+  { keywords: ['fish','machli','machli'],                      category:'seafood', quantity:'500g',      monthlyFrequency:4,  shelfLifeDays:1  },
+  { keywords: ['rohu','rohu fish'],                            category:'seafood', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:1  },
+  { keywords: ['katla','catla'],                               category:'seafood', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:1  },
+  { keywords: ['pomfret','paplet'],                            category:'seafood', quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:1  },
+  { keywords: ['prawn','shrimp','jhinga','jheenga'],           category:'seafood', quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:1  },
+  { keywords: ['hilsa','hilsa fish','ilish'],                  category:'seafood', quantity:'500g',      monthlyFrequency:1,  shelfLifeDays:1  },
 
-  // --- Alcohol ---
-  { keywords: ['wine','red wine','white wine'], category:'alcohol',    quantity:'1 bottle', monthlyFrequency:4, shelfLifeDays:730 },
-  { keywords: ['beer','lager','ale'],        category:'alcohol',       quantity:'6 pack',  monthlyFrequency:4,  shelfLifeDays:180 },
+  // ─── DALS & PULSES / DAL ────────────────────────────────────────────────────
 
-  // --- Snacks ---
-  { keywords: ['crisp','crisps','chip','chips','pringles'], category:'snacks', quantity:'150g', monthlyFrequency:4, shelfLifeDays:90 },
-  { keywords: ['biscuit','biscuits','cookie','cookies'], category:'snacks', quantity:'200g', monthlyFrequency:4, shelfLifeDays:90  },
-  { keywords: ['cracker','crackers','rice cake'], category:'snacks',   quantity:'200g',     monthlyFrequency:4,  shelfLifeDays:90  },
-  { keywords: ['nut','nuts','almond','almonds','cashew','walnut'], category:'snacks', quantity:'200g', monthlyFrequency:2, shelfLifeDays:180 },
-  { keywords: ['popcorn'],                   category:'snacks',        quantity:'100g',     monthlyFrequency:2,  shelfLifeDays:90  },
-  { keywords: ['granola bar','energy bar','protein bar'], category:'snacks', quantity:'6 bars', monthlyFrequency:4, shelfLifeDays:180 },
-  { keywords: ['dried fruit','raisin','raisins'], category:'snacks',   quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['toor dal','arhar dal','tuvar dal'],            category:'pasta-grains', quantity:'1 kg', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['moong dal','mung dal','green moong'],          category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['chana dal','Bengal gram','split chickpea'],    category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['masoor dal','red lentil','pink lentil'],       category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['urad dal','urad','black gram dal'],            category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['rajma','kidney beans','red kidney'],           category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['kabuli chana','white chana','chickpeas','chole'], category:'pasta-grains', quantity:'500g', monthlyFrequency:4, shelfLifeDays:365 },
+  { keywords: ['black chana','kala chana','brown chickpea'],   category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['moth dal','matki','moth beans'],               category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['lobiya','black eyed peas','chawli'],           category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['val dal','field beans'],                       category:'pasta-grains', quantity:'500g', monthlyFrequency:1,  shelfLifeDays:365 },
 
-  // --- Sweets ---
-  { keywords: ['chocolate','dark chocolate','milk chocolate'], category:'sweets', quantity:'100g', monthlyFrequency:4, shelfLifeDays:180 },
-  { keywords: ['candy','sweets','gummy'],    category:'sweets',        quantity:'150g',     monthlyFrequency:2,  shelfLifeDays:180 },
-  { keywords: ['cake'],                      category:'sweets',        quantity:'1 pc',    monthlyFrequency:2,  shelfLifeDays:3   },
+  // ─── GRAINS & RICE / ANAAJ ──────────────────────────────────────────────────
 
-  // --- Health Foods ---
-  { keywords: ['chia seed','chia seeds'],    category:'health-foods',  quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['flaxseed','flax seed'],      category:'health-foods',  quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:365 },
-  { keywords: ['hemp seed'],                 category:'health-foods',  quantity:'200g',     monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['protein powder'],            category:'health-foods',  quantity:'1 kg',     monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['multivitamin','vitamin c','vitamin d','vitamin b'], category:'vitamins', quantity:'30 tabs', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['omega 3','fish oil'],        category:'vitamins',      quantity:'60 caps',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['basmati rice','basmati'],                      category:'pasta-grains', quantity:'5 kg', monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['rice','chawal','plain rice','sona masoori'],   category:'pasta-grains', quantity:'5 kg', monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['wheat flour','atta','gehun atta'],             category:'pasta-grains', quantity:'5 kg', monthlyFrequency:2,  shelfLifeDays:60  },
+  { keywords: ['maida','all purpose flour','refined flour'],   category:'pasta-grains', quantity:'1 kg', monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['besan','gram flour','chickpea flour'],         category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:90  },
+  { keywords: ['semolina','sooji','suji','rava'],              category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['poha','flattened rice','beaten rice'],         category:'pasta-grains', quantity:'500g', monthlyFrequency:4,  shelfLifeDays:180 },
+  { keywords: ['murmura','puffed rice','muri'],                category:'snacks',  quantity:'200g',      monthlyFrequency:4,  shelfLifeDays:30  },
+  { keywords: ['corn flour','makki ka atta','maize flour'],    category:'pasta-grains', quantity:'500g', monthlyFrequency:1,  shelfLifeDays:180 },
+  { keywords: ['bajra','pearl millet','bajra atta'],           category:'pasta-grains', quantity:'1 kg', monthlyFrequency:2,  shelfLifeDays:90  },
+  { keywords: ['jowar','sorghum','jowar atta'],                category:'pasta-grains', quantity:'1 kg', monthlyFrequency:2,  shelfLifeDays:90  },
+  { keywords: ['ragi','finger millet','nachni'],               category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:90  },
+  { keywords: ['oats','jaee'],                                 category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['vermicelli','seviyan','sevai'],                category:'pasta-grains', quantity:'200g', monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['pasta','macaroni'],                            category:'pasta-grains', quantity:'500g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['noodles','maggi','instant noodles'],           category:'snacks',  quantity:'4 packets', monthlyFrequency:4, shelfLifeDays:180 },
+  { keywords: ['bread','pav','double roti'],                   category:'bakery',  quantity:'1 loaf',    monthlyFrequency:8,  shelfLifeDays:4  },
+  { keywords: ['pav bun','pav'],                               category:'bakery',  quantity:'6 pcs',     monthlyFrequency:4,  shelfLifeDays:3  },
+  { keywords: ['rusk','toast'],                                category:'bakery',  quantity:'1 packet',  monthlyFrequency:2,  shelfLifeDays:90  },
 
-  // --- Cleaning ---
-  { keywords: ['washing up liquid','dish soap','dish liquid'], category:'cleaning', quantity:'500ml', monthlyFrequency:2, shelfLifeDays:730 },
-  { keywords: ['dishwasher tablet','dishwasher pod'], category:'cleaning', quantity:'30 tabs', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['surface spray','kitchen spray','all purpose cleaner'], category:'cleaning', quantity:'500ml', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['bleach'],                    category:'cleaning',      quantity:'750ml',    monthlyFrequency:1,  shelfLifeDays:365 },
-  { keywords: ['bin bag','bin liner','trash bag'], category:'cleaning', quantity:'30 bags', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['sponge','scrubber'],         category:'cleaning',      quantity:'2 pcs',   monthlyFrequency:2,  shelfLifeDays:30  },
-  { keywords: ['kitchen roll','paper towel'], category:'cleaning',     quantity:'4 rolls', monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['toilet cleaner','toilet duck'], category:'cleaning',   quantity:'750ml',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['floor cleaner','mop refill'], category:'cleaning',     quantity:'1 bottle', monthlyFrequency:1, shelfLifeDays:730 },
+  // ─── SPICES / MASALA ────────────────────────────────────────────────────────
 
-  // --- Laundry ---
-  { keywords: ['laundry detergent','washing powder','washing liquid'], category:'laundry', quantity:'1.5 kg', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['laundry pod','washing capsule'], category:'laundry',   quantity:'30 pods', monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['fabric softener','conditioner'], category:'laundry',   quantity:'1 L',     monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['stain remover'],             category:'laundry',       quantity:'500ml',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['dryer sheet'],               category:'laundry',       quantity:'40 sheets', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['turmeric','haldi','turmeric powder'],          category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['red chilli powder','lal mirch','mirchi powder'], category:'pantry', quantity:'100g',     monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['cumin','jeera','zeera'],                       category:'pantry',  quantity:'100g',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['mustard seeds','rai','sarson'],                category:'pantry',  quantity:'100g',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['coriander powder','dhania powder','dhaniya powder'], category:'pantry', quantity:'100g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['garam masala'],                                category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['asafoetida','hing','heeng'],                   category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['black pepper','kali mirch'],                   category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['cardamom','elaichi','elachi'],                 category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['cloves','laung','lavang'],                     category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['cinnamon','dalchini'],                         category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['bay leaf','tej patta'],                        category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['dry mango powder','amchur','amchoor'],         category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['chaat masala'],                                category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['kitchen king masala','sabzi masala'],          category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['biryani masala'],                              category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['sambar masala','sambar powder'],               category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['rasam powder'],                                category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['pav bhaji masala'],                            category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['star anise','chakra phool'],                   category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['fenugreek seeds','methi dana','methi seeds'],  category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['fennel seeds','saunf'],                        category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['carom seeds','ajwain'],                        category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['nigella seeds','kalonji'],                     category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['poppy seeds','khus khus'],                     category:'pantry',  quantity:'50g',       monthlyFrequency:1,  shelfLifeDays:365 },
 
-  // --- Personal Care ---
-  { keywords: ['shampoo'],                   category:'personal-care', quantity:'400ml',    monthlyFrequency:1,  shelfLifeDays:1095 },
-  { keywords: ['conditioner'],               category:'personal-care', quantity:'400ml',    monthlyFrequency:1,  shelfLifeDays:1095 },
-  { keywords: ['body wash','shower gel'],    category:'personal-care', quantity:'400ml',    monthlyFrequency:2,  shelfLifeDays:1095 },
-  { keywords: ['soap','hand soap','bar soap'], category:'personal-care', quantity:'3 bars', monthlyFrequency:1, shelfLifeDays:1095 },
-  { keywords: ['toothpaste'],                category:'personal-care', quantity:'100ml',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['toothbrush'],                category:'personal-care', quantity:'1 pc',    monthlyFrequency:0.3,shelfLifeDays:90  },
-  { keywords: ['deodorant'],                 category:'personal-care', quantity:'150ml',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['razor','shaving cream'],     category:'personal-care', quantity:'1 pc',    monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['moisturiser','lotion','face cream'], category:'personal-care', quantity:'150ml', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['sunscreen','sun cream','spf'], category:'personal-care', quantity:'200ml', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['toilet paper','toilet roll','loo roll'], category:'personal-care', quantity:'12 rolls', monthlyFrequency:2, shelfLifeDays:730 },
-  { keywords: ['tissue','tissues','facial tissue'], category:'personal-care', quantity:'1 box', monthlyFrequency:2, shelfLifeDays:730 },
-  { keywords: ['sanitary pad','tampon','period'], category:'personal-care', quantity:'1 pack', monthlyFrequency:1, shelfLifeDays:730 },
-  { keywords: ['cotton pad','cotton ball'], category:'personal-care',  quantity:'100 pcs', monthlyFrequency:1,  shelfLifeDays:730 },
-  { keywords: ['nail clipper','nail file'],  category:'personal-care', quantity:'1 pc',    monthlyFrequency:0.2,shelfLifeDays:1825},
-  { keywords: ['lip balm','chapstick'],      category:'personal-care', quantity:'1 pc',    monthlyFrequency:0.5,shelfLifeDays:730 },
+  // ─── PANTRY STAPLES ─────────────────────────────────────────────────────────
 
-  // --- Baby & Kids ---
-  { keywords: ['nappy','nappies','diaper'],  category:'baby',          quantity:'1 pack',  monthlyFrequency:4,  shelfLifeDays:1095 },
-  { keywords: ['baby wipe','baby wipes'],    category:'baby',          quantity:'2 packs', monthlyFrequency:4,  shelfLifeDays:730 },
-  { keywords: ['baby food','baby formula','infant formula'], category:'baby', quantity:'1 pack', monthlyFrequency:4, shelfLifeDays:365 },
-  { keywords: ['baby shampoo','baby wash'],  category:'baby',          quantity:'200ml',   monthlyFrequency:1,  shelfLifeDays:1095 },
+  { keywords: ['salt','namak'],                                category:'pantry',  quantity:'1 kg',      monthlyFrequency:1,  shelfLifeDays:1825 },
+  { keywords: ['sugar','cheeni','chini','shakkar'],            category:'pantry',  quantity:'1 kg',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['jaggery','gur','gud'],                         category:'pantry',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['mustard oil','sarson ka tel'],                  category:'pantry', quantity:'1 litre',   monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['refined oil','sunflower oil','tel'],           category:'pantry',  quantity:'1 litre',   monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['coconut oil','nariyal tel'],                   category:'pantry',  quantity:'500ml',     monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['groundnut oil','peanut oil','moongphali tel'], category:'pantry',  quantity:'1 litre',   monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['vinegar','sirka'],                             category:'pantry',  quantity:'500ml',     monthlyFrequency:1,  shelfLifeDays:1825 },
+  { keywords: ['honey','shahad','madhu'],                      category:'pantry',  quantity:'250g',      monthlyFrequency:1,  shelfLifeDays:1825 },
+  { keywords: ['tomato ketchup','sauce','tomato sauce'],       category:'pantry',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['soy sauce','soya sauce'],                      category:'pantry',  quantity:'200ml',     monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['green chutney','mint chutney'],                category:'pantry',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['tamarind chutney','imli chutney'],             category:'pantry',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:14 },
+  { keywords: ['pickle','achar','achaar'],                     category:'pantry',  quantity:'250g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['papad','poppadum'],                            category:'pantry',  quantity:'1 packet',  monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['baking soda','meetha soda','cooking soda'],   category:'pantry',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['rose water','gulab jal','rose essence'],       category:'pantry',  quantity:'100ml',     monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['desiccated coconut','coconut powder','nariyal burra'], category:'pantry', quantity:'200g', monthlyFrequency:1, shelfLifeDays:90 },
+  { keywords: ['dry fruits','mixed dry fruits'],               category:'pantry',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:90 },
+  { keywords: ['cashew','kaju'],                               category:'snacks',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:90 },
+  { keywords: ['almond','badam'],                              category:'snacks',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['peanut','moongphali','groundnut'],             category:'snacks',  quantity:'250g',      monthlyFrequency:4,  shelfLifeDays:60 },
+  { keywords: ['raisin','kishmish'],                           category:'snacks',  quantity:'100g',      monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['walnut','akhrot'],                             category:'snacks',  quantity:'100g',      monthlyFrequency:2,  shelfLifeDays:90 },
+  { keywords: ['pistachio','pista'],                           category:'snacks',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:90 },
+  { keywords: ['dates','khajoor'],                             category:'snacks',  quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:90 },
 
-  // --- Pet ---
-  { keywords: ['dog food','cat food','pet food'], category:'pet',      quantity:'1 kg',    monthlyFrequency:4,  shelfLifeDays:365 },
-  { keywords: ['cat litter','kitty litter'], category:'pet',           quantity:'5 kg',    monthlyFrequency:2,  shelfLifeDays:730 },
-  { keywords: ['pet treat','dog treat','cat treat'], category:'pet',   quantity:'200g',    monthlyFrequency:2,  shelfLifeDays:180 },
+  // ─── CANNED & PACKAGED ──────────────────────────────────────────────────────
+
+  { keywords: ['coconut milk','nariyal doodh'],                category:'canned-goods', quantity:'400ml', monthlyFrequency:2, shelfLifeDays:365 },
+  { keywords: ['canned tomato','tinned tomato'],               category:'canned-goods', quantity:'400g',  monthlyFrequency:2, shelfLifeDays:730 },
+  { keywords: ['sweet corn can','corn can'],                   category:'canned-goods', quantity:'400g',  monthlyFrequency:2, shelfLifeDays:730 },
+  { keywords: ['ready to eat','rte','heat and eat'],           category:'canned-goods', quantity:'1 packet', monthlyFrequency:2, shelfLifeDays:365 },
+  { keywords: ['rajma can','chole can'],                       category:'canned-goods', quantity:'400g',  monthlyFrequency:2, shelfLifeDays:730 },
+
+  // ─── BEVERAGES / PEENA ──────────────────────────────────────────────────────
+
+  { keywords: ['tea','chai','chaa'],                           category:'beverages', quantity:'250g',    monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['green tea','green chai'],                      category:'beverages', quantity:'25 bags', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['coffee','kaafi','kapi'],                       category:'beverages', quantity:'200g',    monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['filter coffee','south indian filter coffee'],  category:'beverages', quantity:'200g',    monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['bournvita','horlicks','complan','health drink'], category:'beverages', quantity:'500g',  monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['water bottle','mineral water','packaged water'], category:'beverages', quantity:'1 litre', monthlyFrequency:8, shelfLifeDays:365 },
+  { keywords: ['nimbu paani','lime juice','lemon juice'],      category:'beverages', quantity:'500ml',   monthlyFrequency:4,  shelfLifeDays:7  },
+  { keywords: ['mango juice','frooti','aamras'],               category:'beverages', quantity:'1 litre', monthlyFrequency:4,  shelfLifeDays:90 },
+  { keywords: ['coconut water','nariyal paani'],               category:'beverages', quantity:'1 litre', monthlyFrequency:4,  shelfLifeDays:3  },
+  { keywords: ['soft drink','cold drink','soda','cola','pepsi','thums up','sprite'], category:'beverages', quantity:'1.5 litre', monthlyFrequency:4, shelfLifeDays:180 },
+  { keywords: ['sharbat','rose sharbat','rooh afza'],          category:'beverages', quantity:'750ml',   monthlyFrequency:2,  shelfLifeDays:365 },
+
+  // ─── SNACKS / NAMKEEN ───────────────────────────────────────────────────────
+
+  { keywords: ['namkeen','mixture','farsan'],                  category:'snacks',  quantity:'200g',      monthlyFrequency:4,  shelfLifeDays:60 },
+  { keywords: ['bhujia','aloo bhujia','haldiram'],             category:'snacks',  quantity:'200g',      monthlyFrequency:4,  shelfLifeDays:60 },
+  { keywords: ['chakli','chakri'],                             category:'snacks',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:30 },
+  { keywords: ['chips','crisps','lays','bingo'],               category:'snacks',  quantity:'1 packet',  monthlyFrequency:4,  shelfLifeDays:60 },
+  { keywords: ['biscuit','parle g','glucose biscuit'],         category:'snacks',  quantity:'1 packet',  monthlyFrequency:4,  shelfLifeDays:90 },
+  { keywords: ['marie biscuit','digestive biscuit','cream biscuit'], category:'snacks', quantity:'1 packet', monthlyFrequency:2, shelfLifeDays:90 },
+  { keywords: ['mathri','matthi'],                             category:'snacks',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:30 },
+  { keywords: ['popcorn','corn pop'],                          category:'snacks',  quantity:'1 packet',  monthlyFrequency:2,  shelfLifeDays:60 },
+  { keywords: ['roasted chana','chana jor garam'],             category:'snacks',  quantity:'200g',      monthlyFrequency:4,  shelfLifeDays:30 },
+
+  // ─── SWEETS / MITHAI ────────────────────────────────────────────────────────
+
+  { keywords: ['chocolate','dairy milk','5 star','kit kat'],   category:'sweets',  quantity:'1 pc',      monthlyFrequency:4,  shelfLifeDays:180 },
+  { keywords: ['ladoo','laddoo'],                              category:'sweets',  quantity:'6 pcs',     monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['barfi','burfi','milk barfi'],                  category:'sweets',  quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:7  },
+  { keywords: ['halwa','suji halwa'],                          category:'sweets',  quantity:'200g',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['gulab jamun'],                                 category:'sweets',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:3  },
+  { keywords: ['rasgulla'],                                    category:'sweets',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:5  },
+  { keywords: ['jalebi'],                                      category:'sweets',  quantity:'250g',      monthlyFrequency:2,  shelfLifeDays:2  },
+  { keywords: ['sugar candy','mishri'],                        category:'sweets',  quantity:'100g',      monthlyFrequency:1,  shelfLifeDays:365 },
+
+  // ─── FROZEN ─────────────────────────────────────────────────────────────────
+
+  { keywords: ['frozen peas','frozen matar'],                  category:'frozen',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['frozen corn','frozen sweet corn'],             category:'frozen',  quantity:'500g',      monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['frozen paratha','frozen roti'],                category:'frozen',  quantity:'5 pcs',     monthlyFrequency:4,  shelfLifeDays:180 },
+  { keywords: ['frozen samosa'],                               category:'frozen',  quantity:'10 pcs',    monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['ice cream','kulfi'],                           category:'frozen',  quantity:'500ml',     monthlyFrequency:2,  shelfLifeDays:90 },
+
+  // ─── HEALTH FOODS ───────────────────────────────────────────────────────────
+
+  { keywords: ['protein powder','whey protein'],               category:'health-foods', quantity:'1 kg', monthlyFrequency:1, shelfLifeDays:365 },
+  { keywords: ['multivitamin','vitamin tablet'],               category:'vitamins', quantity:'30 tabs',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['chyawanprash'],                                category:'health-foods', quantity:'500g', monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['ashwagandha'],                                 category:'vitamins', quantity:'60 caps',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['triphala','haritaki'],                         category:'vitamins', quantity:'60 tabs',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['flaxseed','alsi','flax seeds'],                category:'health-foods', quantity:'250g', monthlyFrequency:2,  shelfLifeDays:180 },
+  { keywords: ['chia seeds'],                                  category:'health-foods', quantity:'200g', monthlyFrequency:2,  shelfLifeDays:365 },
+  { keywords: ['quinoa'],                                      category:'health-foods', quantity:'500g', monthlyFrequency:1,  shelfLifeDays:365 },
+
+  // ─── CLEANING / SAFAI ───────────────────────────────────────────────────────
+
+  { keywords: ['dishwash','vim','soap for utensils','bartan soap','bartan sabun'], category:'cleaning', quantity:'500g', monthlyFrequency:2, shelfLifeDays:730 },
+  { keywords: ['dishwash bar','utensil cleaning bar'],         category:'cleaning', quantity:'1 bar',    monthlyFrequency:2,  shelfLifeDays:730 },
+  { keywords: ['floor cleaner','phenyl','colin'],              category:'cleaning', quantity:'1 litre',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['toilet cleaner','harpic','toilex'],            category:'cleaning', quantity:'500ml',    monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['surface spray','kitchen cleaner','lizol'],     category:'cleaning', quantity:'500ml',    monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['bleach','sodium hypochlorite','safedi'],       category:'cleaning', quantity:'1 litre',  monthlyFrequency:1,  shelfLifeDays:365 },
+  { keywords: ['garbage bag','dustbin bag','waste bag'],       category:'cleaning', quantity:'30 pcs',   monthlyFrequency:2,  shelfLifeDays:730 },
+  { keywords: ['scrubber','scotch brite','steel wool'],        category:'cleaning', quantity:'2 pcs',    monthlyFrequency:2,  shelfLifeDays:30 },
+  { keywords: ['mop','mop refill','pocha'],                    category:'cleaning', quantity:'1 pc',     monthlyFrequency:1,  shelfLifeDays:180 },
+
+  // ─── LAUNDRY / DHULAI ───────────────────────────────────────────────────────
+
+  { keywords: ['washing powder','surf','tide','rin','detergent'], category:'laundry', quantity:'1 kg',  monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['washing liquid','liquid detergent','ariel liquid'], category:'laundry', quantity:'1 litre', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['fabric softener','comfort','downy'],           category:'laundry', quantity:'500ml',    monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['stain remover','vanish'],                      category:'laundry', quantity:'250g',     monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['washing bar','washing soap','kapde ka sabun'], category:'laundry', quantity:'2 bars',   monthlyFrequency:2,  shelfLifeDays:730 },
+
+  // ─── PERSONAL CARE / SAUNDARYA ──────────────────────────────────────────────
+
+  { keywords: ['shampoo','kesh tel','baal dhona'],             category:'personal-care', quantity:'200ml', monthlyFrequency:1, shelfLifeDays:1095 },
+  { keywords: ['conditioner','hair conditioner'],              category:'personal-care', quantity:'200ml', monthlyFrequency:1, shelfLifeDays:1095 },
+  { keywords: ['soap','sabun','bathing soap','bar soap'],      category:'personal-care', quantity:'3 bars', monthlyFrequency:2, shelfLifeDays:1095 },
+  { keywords: ['body wash','shower gel','shower cream'],       category:'personal-care', quantity:'200ml', monthlyFrequency:1, shelfLifeDays:1095 },
+  { keywords: ['toothpaste','colgate','pepsodent'],            category:'personal-care', quantity:'200g',  monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['toothbrush','tooth brush'],                    category:'personal-care', quantity:'1 pc',  monthlyFrequency:0.3,shelfLifeDays:90 },
+  { keywords: ['deodorant','deo','perfume spray'],             category:'personal-care', quantity:'150ml', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['face wash','muh dhona','facewash'],            category:'personal-care', quantity:'100ml', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['moisturiser','body lotion','cream','cold cream'], category:'personal-care', quantity:'100ml', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['coconut hair oil','hair oil','nariyal tel'],   category:'personal-care', quantity:'200ml', monthlyFrequency:1, shelfLifeDays:365 },
+  { keywords: ['toilet paper','tissue roll'],                  category:'personal-care', quantity:'6 rolls', monthlyFrequency:2, shelfLifeDays:730 },
+  { keywords: ['tissue','tissue paper','facial tissue'],       category:'personal-care', quantity:'1 box',  monthlyFrequency:2, shelfLifeDays:730 },
+  { keywords: ['sanitary pad','napkin','stayfree','whisper'],  category:'personal-care', quantity:'1 pack', monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['cotton','cotton roll','rooh'],                 category:'personal-care', quantity:'100g',   monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['razor','shaving blade','gillette'],            category:'personal-care', quantity:'1 pc',   monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['shaving cream','shaving gel'],                 category:'personal-care', quantity:'100g',   monthlyFrequency:1, shelfLifeDays:730 },
+  { keywords: ['mehendi','henna','henna powder'],              category:'personal-care', quantity:'1 packet', monthlyFrequency:1, shelfLifeDays:365 },
+  { keywords: ['kumkum','bindi','sindoor'],                    category:'personal-care', quantity:'1 pack', monthlyFrequency:1, shelfLifeDays:365 },
+
+  // ─── BABY / BACCHA ──────────────────────────────────────────────────────────
+
+  { keywords: ['diaper','nappy','pampers','huggies'],          category:'baby',    quantity:'1 pack',   monthlyFrequency:4,  shelfLifeDays:1095 },
+  { keywords: ['baby wipes','wet wipes'],                      category:'baby',    quantity:'2 packs',  monthlyFrequency:4,  shelfLifeDays:730 },
+  { keywords: ['baby food','cerelac','baby formula'],          category:'baby',    quantity:'1 pack',   monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['baby powder','johnson baby powder'],           category:'baby',    quantity:'100g',     monthlyFrequency:1,  shelfLifeDays:730 },
+  { keywords: ['baby oil','johnson baby oil'],                 category:'baby',    quantity:'200ml',    monthlyFrequency:1,  shelfLifeDays:730 },
+
+  // ─── PET / JANWAR ───────────────────────────────────────────────────────────
+
+  { keywords: ['dog food','pet food','pedigree'],              category:'pet',     quantity:'1 kg',     monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['cat food','whiskas','meow'],                   category:'pet',     quantity:'1 kg',     monthlyFrequency:4,  shelfLifeDays:365 },
+  { keywords: ['pet treat','dog treat','cat treat'],           category:'pet',     quantity:'200g',     monthlyFrequency:2,  shelfLifeDays:180 },
 ];
 
 // Lookup by name — returns best match or null
@@ -236,7 +325,7 @@ function lookupProduct(name) {
   let bestScore = 0;
   for (const product of PRODUCTS) {
     for (const keyword of product.keywords) {
-      if (q === keyword) return product;           // exact match
+      if (q === keyword) return product;
       if (q.includes(keyword) || keyword.includes(q)) {
         const score = keyword.length;
         if (score > bestScore) { bestScore = score; bestMatch = product; }
@@ -246,4 +335,50 @@ function lookupProduct(name) {
   return bestMatch;
 }
 
-module.exports = { lookupProduct };
+// Scale the base quantity (written for 1 person) for a given household size.
+// The base products are written for a single person / small family of ~2.
+// We scale linearly but round to sensible units.
+function scaleForHousehold(product, memberCount) {
+  if (!memberCount || memberCount <= 1) return product;
+  const factor = memberCount / 2; // base quantities assume ~2 people
+  const scaled = scaleQuantityString(product.quantity, factor);
+  const scaledFreq = product.monthlyFrequency != null
+    ? Math.round(product.monthlyFrequency * (memberCount / 2) * 10) / 10
+    : null;
+  return { ...product, quantity: scaled, monthlyFrequency: scaledFreq };
+}
+
+// Parse a quantity string like "500g", "1 kg", "12 pcs", "1 litre", scale it, re-format.
+function scaleQuantityString(qty, factor) {
+  if (!qty || factor === 1) return qty;
+  // Match: number + optional space + unit
+  const m = qty.match(/^([\d.]+)\s*(.+)$/);
+  if (!m) return qty;
+  const num  = parseFloat(m[1]);
+  const unit = m[2].trim();
+  const raw  = num * factor;
+
+  // Round to sensible precision based on unit
+  const u = unit.toLowerCase();
+  let rounded;
+  if (u === 'kg' || u === 'litre' || u === 'l') {
+    // Round to nearest 0.5 for weights/volumes
+    rounded = Math.round(raw * 2) / 2;
+    if (rounded >= 1) {
+      rounded = Math.round(rounded * 10) / 10;
+    }
+  } else if (['g','ml','gm'].includes(u)) {
+    // Round to nearest 50 for small units
+    rounded = Math.round(raw / 50) * 50 || 50;
+    // Upgrade g→kg, ml→litre if large enough
+    if (u === 'g' && rounded >= 1000) return `${rounded / 1000} kg`;
+    if (u === 'ml' && rounded >= 1000) return `${rounded / 1000} litre`;
+  } else if (['pcs','pc','tabs','caps','bags','rolls','bars','pods','sheets','bunch','head','loaf','cobs','cans','bottles','pack','packs','dozen'].includes(u)) {
+    rounded = Math.ceil(raw);
+  } else {
+    rounded = Math.round(raw * 10) / 10;
+  }
+  return `${rounded} ${unit}`;
+}
+
+module.exports = { lookupProduct, scaleForHousehold };

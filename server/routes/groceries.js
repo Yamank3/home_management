@@ -123,7 +123,73 @@ router.patch('/items/:id', validate(itemUpdateSchema), async (req, res, next) =>
       where: { id: req.params.id, householdId: req.householdId },
     });
     if (!existing) return res.status(404).json({ success: false, error: 'Item not found' });
+
     const item = await prisma.groceryItem.update({ where: { id: req.params.id }, data: req.body });
+
+    // Auto-create/update inventory when item is marked as bought.
+    // Rule: shelf life >= 7 days, OR the item is paneer (short shelf but worth tracking).
+    const isPaneer = /paneer/i.test(item.name);
+    if (!existing.bought && item.bought && ((item.shelfLifeDays ?? 0) >= 7 || isPaneer)) {
+      const today = new Date().toISOString().split('T')[0];
+
+      // Compute estimated end date from shelf life
+      let estimatedEndDate = null;
+      if (item.shelfLifeDays) {
+        const end = new Date();
+        end.setDate(end.getDate() + item.shelfLifeDays);
+        estimatedEndDate = end.toISOString().split('T')[0];
+      } else if (item.monthlyFrequency && item.monthlyFrequency > 0) {
+        // Fallback: estimate from monthly frequency (days per cycle)
+        const daysPerCycle = Math.round(30 / item.monthlyFrequency);
+        const end = new Date();
+        end.setDate(end.getDate() + daysPerCycle);
+        estimatedEndDate = end.toISOString().split('T')[0];
+      }
+
+      // Who bought it — look up the user from the JWT
+      const buyer = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { name: true },
+      });
+      const purchasedBy = buyer?.name || '';
+
+      // Upsert: if an inventory item with same name+household exists, update it
+      const existingInv = await prisma.inventoryItem.findFirst({
+        where: { name: item.name, householdId: req.householdId, fromGrocery: true },
+      });
+
+      if (existingInv) {
+        await prisma.inventoryItem.update({
+          where: { id: existingInv.id },
+          data: {
+            purchaseDate: today,
+            purchasedBy,
+            stockQuantity: item.quantity || '',
+            estimatedEndDate,
+            monthlyFrequency: item.monthlyFrequency,
+            shelfLifeDays: item.shelfLifeDays,
+            notes: item.note || '',
+          },
+        });
+      } else {
+        await prisma.inventoryItem.create({
+          data: {
+            name: item.name,
+            category: item.category,
+            purchaseDate: today,
+            purchasedBy,
+            stockQuantity: item.quantity || '',
+            estimatedEndDate,
+            monthlyFrequency: item.monthlyFrequency,
+            shelfLifeDays: item.shelfLifeDays,
+            notes: item.note || '',
+            fromGrocery: true,
+            householdId: req.householdId,
+          },
+        });
+      }
+    }
+
     res.json({ success: true, data: item });
   } catch (err) { next(err); }
 });

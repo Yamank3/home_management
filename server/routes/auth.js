@@ -5,6 +5,7 @@ const { z } = require('zod');
 const prisma = require('../db');
 const { validate } = require('../middleware/validate');
 const { requireAuth } = require('../middleware/auth');
+const { seedRecipes } = require('../seed');
 
 const router = express.Router();
 
@@ -35,22 +36,28 @@ const registerSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   password: z.string().min(6).max(100),
+  memberCount: z.number().int().min(1).max(20).nullable().optional(),
 });
 
 router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
-    const { householdName, name, email, password } = req.body;
+    const { householdName, name, email, password, memberCount } = req.body;
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(409).json({ success: false, error: 'Email already in use' });
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
-    const household = await prisma.household.create({ data: { name: householdName } });
+    const household = await prisma.household.create({
+      data: { name: householdName, memberCount: memberCount ?? null },
+    });
     const user = await prisma.user.create({
       data: { name, email, password: hashed, role: 'admin', householdId: household.id },
     });
 
     res.cookie('token', signToken(user), COOKIE_OPTS);
     res.json({ success: true, data: { user: safeUser(user), household } });
+
+    // Seed default recipes for the new household (fire and forget)
+    seedRecipes(prisma, household.id).catch(() => {});
   } catch (err) { next(err); }
 });
 
@@ -170,6 +177,21 @@ router.patch('/me', requireAuth, validate(updateMeSchema), async (req, res, next
 
     const updated = await prisma.user.update({ where: { id: req.user.userId }, data: updates });
     res.json({ success: true, data: safeUser(updated) });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/auth/household — update household settings (admin only)
+router.patch('/household', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Only admins can update household settings' });
+    }
+    const { memberCount } = req.body;
+    const household = await prisma.household.update({
+      where: { id: req.householdId },
+      data: { memberCount: memberCount != null ? parseInt(memberCount) : null },
+    });
+    res.json({ success: true, data: household });
   } catch (err) { next(err); }
 });
 

@@ -27,6 +27,7 @@ export const authApi = {
   logout: () => post('/auth/logout'),
   me: () => get('/auth/me'),
   updateMe: (data) => patch('/auth/me', data),
+  updateHousehold: (data) => patch('/auth/household', data),
   getMembers: () => get('/auth/household/members'),
   inviteMember: (data) => post('/auth/household/invite', data),
   removeMember: (id) => del(`/auth/household/members/${id}`),
@@ -36,7 +37,7 @@ export const groceryApi = {
   getLists: () => get('/groceries/lists'),
   createList: (name, focusGroups = []) => post('/groceries/lists', { name, focusGroups }),
   deleteList: (id) => del(`/groceries/lists/${id}`),
-  lookup: (name) => get(`/groceries/lookup?name=${encodeURIComponent(name)}`),
+  lookup: (name, members) => get(`/groceries/lookup?name=${encodeURIComponent(name)}${members ? `&members=${members}` : ''}`),
   getItems: (listId) => get(`/groceries/items${listId ? `?listId=${listId}` : ''}`),
   addItem: (data) => post('/groceries/items', data),
   updateItem: (id, data) => patch(`/groceries/items/${id}`, data),
@@ -68,6 +69,7 @@ export const inventoryApi = {
   create: (data) => post('/inventory', data),
   update: (id, data) => patch(`/inventory/${id}`, data),
   remove: (id) => del(`/inventory/${id}`),
+  bulkRemove: (ids) => request('DELETE', '/inventory/bulk', { ids }),
 };
 
 export const mealsApi = {
@@ -78,9 +80,21 @@ export const mealsApi = {
   getPlan: (weekStart) => get(`/meals/plan${weekStart ? `?weekStart=${weekStart}` : ''}`),
   setPlan: (data) => post('/meals/plan', data),
   updatePlan: (id, data) => patch(`/meals/plan/${id}`, data),
+  cookSlot: (id, slot) => post(`/meals/plan/${id}/cook`, { slot }),
   addToGroceries: (id, listId) => post(`/meals/${id}/add-to-groceries`, { listId }),
+  addIngredientsToGroceries: (ingredients, mealName, listId) =>
+    post('/meals/add-ingredients-to-groceries', { ingredients, mealName, listId }),
+  lookupRecipe: (name, servings) => get(`/meals/recipe?name=${encodeURIComponent(name)}${servings ? `&servings=${servings}` : ''}`),
+  searchRecipes: (q, servings) => get(`/meals/search?q=${encodeURIComponent(q)}${servings ? `&servings=${servings}` : ''}`),
+  importFromUrl: (url, servings) => post('/meals/import-url', { url, servings }),
+  checkInventory: (ingredients) => post('/meals/check-inventory', { ingredients }),
+  getSuggestions: (members) => get(`/meals/suggestions${members ? `?members=${members}` : ''}`),
 };
 
 export const dashboardApi = {
   getSummary: () => get('/dashboard/summary'),
+};
+
+export const voiceApi = {
+  command: (transcript) => post('/voice/command', { transcript }),
 };

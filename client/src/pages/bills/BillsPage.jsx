@@ -16,10 +16,10 @@ const CAT_COLORS = {
   'rent/mortgage': 'orange', loans: 'red', other: 'gray',
 };
 
-const EMPTY_FORM = { name: '', amount: '', currency: 'USD', category: 'utilities', dueDay: '', frequency: 'monthly', notes: '' };
+const EMPTY_FORM = { name: '', amount: '', currency: 'INR', category: 'utilities', dueDay: '', frequency: 'monthly', notes: '' };
 
-function fmt(amount, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+function fmt(amount, currency = 'INR') {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount);
 }
 
 function dueSoonColor(nextDueDate) {
@@ -39,10 +39,15 @@ export default function BillsPage() {
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.amount) return;
+    const payload = {
+      ...form,
+      amount:  parseFloat(form.amount),
+      dueDay:  form.dueDay !== '' ? parseInt(form.dueDay) : null,
+    };
     if (editId) {
-      await update(editId, { ...form, amount: parseFloat(form.amount) });
+      await update(editId, payload);
     } else {
-      await create({ ...form, amount: parseFloat(form.amount) });
+      await create(payload);
     }
     setForm(EMPTY_FORM);
     setShowAdd(false);
@@ -133,7 +138,7 @@ export default function BillsPage() {
           <div className="flex gap-2">
             <Input label="Amount" type="number" placeholder="0.00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
             <Select label="Currency" value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}>
-              {['USD','EUR','GBP','CAD','AUD'].map(c => <option key={c} value={c}>{c}</option>)}
+              {['INR','USD','EUR','GBP','AED','SGD'].map(c => <option key={c} value={c}>{c}</option>)}
             </Select>
           </div>
           <div className="flex gap-2">

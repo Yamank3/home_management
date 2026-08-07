@@ -71,19 +71,20 @@ router.post('/:id/complete', validate(completeSchema), async (req, res, next) =>
     if (!existing) return res.status(404).json({ success: false, error: 'Chore not found' });
 
     const freqDays = JSON.parse(existing.frequencyDays || '[]');
-    const [completion, chore] = await prisma.$transaction([
-      prisma.choreCompletion.create({
-        data: { choreId: req.params.id, completedBy: req.body.completedBy },
-      }),
-      prisma.chore.update({
-        where: { id: req.params.id },
-        data: {
-          lastCompletedAt: new Date(),
-          nextDueDate: computeNextDue(existing.frequency, freqDays),
-        },
-        include: { completions: { orderBy: { completedAt: 'desc' }, take: 10 } },
-      }),
-    ]);
+
+    await prisma.choreCompletion.create({
+      data: { choreId: req.params.id, completedBy: req.body.completedBy || '' },
+    });
+
+    const chore = await prisma.chore.update({
+      where: { id: req.params.id },
+      data: {
+        lastCompletedAt: new Date(),
+        nextDueDate: computeNextDue(existing.frequency, freqDays),
+      },
+      include: { completions: { orderBy: { completedAt: 'desc' }, take: 10 } },
+    });
+
     res.json({ success: true, data: serialize(chore) });
   } catch (err) { next(err); }
 });

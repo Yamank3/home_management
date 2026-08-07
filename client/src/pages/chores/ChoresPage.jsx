@@ -12,8 +12,33 @@ import Select from '../../components/ui/Select.jsx';
 const FREQUENCIES = ['daily', 'weekly', 'biweekly', 'monthly', 'as-needed'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const EMPTY_FORM = { name: '', assignedTo: '', frequency: 'weekly', frequencyDays: [], notes: '' };
-
 const FREQ_COLORS = { daily: 'blue', weekly: 'green', biweekly: 'indigo', monthly: 'purple', 'as-needed': 'gray' };
+
+const LS_KEY = 'chores_completed_today';
+
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
+// Returns a Set of chore IDs completed today, auto-resets if date has changed
+function loadCompletedToday() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return new Set();
+    const { date, ids } = JSON.parse(raw);
+    if (date !== getTodayKey()) {
+      localStorage.removeItem(LS_KEY);
+      return new Set();
+    }
+    return new Set(ids);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCompletedToday(set) {
+  localStorage.setItem(LS_KEY, JSON.stringify({ date: getTodayKey(), ids: [...set] }));
+}
 
 function relativeDate(dateStr) {
   if (!dateStr) return null;
@@ -29,7 +54,15 @@ function relativeDate(dateStr) {
 export default function ChoresPage() {
   const { overdue, dueToday, upcoming, loading, create, complete, remove } = useChores();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm]       = useState(EMPTY_FORM);
+  const [completedToday, setCompletedToday] = useState(() => loadCompletedToday());
+
+  const handleComplete = async (id) => {
+    await complete(id);
+    const next = new Set(completedToday).add(id);
+    setCompletedToday(next);
+    saveCompletedToday(next);
+  };
 
   const handleSubmit = async () => {
     if (!form.name.trim()) return;
@@ -65,13 +98,13 @@ export default function ChoresPage() {
       ) : (
         <>
           {overdue.length > 0 && (
-            <ChoreGroup title="Overdue" titleColor="text-red-600" chores={overdue} onComplete={complete} onDelete={remove} />
+            <ChoreGroup title="Overdue" titleColor="text-red-600" chores={overdue} onComplete={handleComplete} onDelete={remove} completedToday={completedToday} />
           )}
           {dueToday.length > 0 && (
-            <ChoreGroup title="Due Today" titleColor="text-amber-600" chores={dueToday} onComplete={complete} onDelete={remove} />
+            <ChoreGroup title="Due Today" titleColor="text-amber-600" chores={dueToday} onComplete={handleComplete} onDelete={remove} completedToday={completedToday} />
           )}
           {upcoming.length > 0 && (
-            <ChoreGroup title="Upcoming" chores={upcoming} onComplete={complete} onDelete={remove} />
+            <ChoreGroup title="Upcoming" chores={upcoming} onComplete={handleComplete} onDelete={remove} completedToday={completedToday} />
           )}
         </>
       )}
@@ -118,41 +151,59 @@ export default function ChoresPage() {
   );
 }
 
-function ChoreGroup({ title, titleColor = 'text-gray-500', chores, onComplete, onDelete }) {
+function ChoreGroup({ title, titleColor = 'text-gray-500', chores, onComplete, onDelete, completedToday }) {
   return (
     <div className="mb-5">
       <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${titleColor}`}>{title}</p>
       <div className="space-y-2">
         {chores.map(chore => (
-          <ChoreItem key={chore.id} chore={chore} onComplete={onComplete} onDelete={onDelete} />
+          <ChoreItem key={chore.id} chore={chore} onComplete={onComplete} onDelete={onDelete}
+            doneToday={completedToday.has(chore.id)} />
         ))}
       </div>
     </div>
   );
 }
 
-function ChoreItem({ chore, onComplete, onDelete }) {
-  const [confirming, setConfirming] = useState(false);
+function ChoreItem({ chore, onComplete, onDelete, doneToday }) {
+  const [completing, setCompleting] = useState(false);
   const dateLabel = relativeDate(chore.nextDueDate);
   const today = new Date().toISOString().split('T')[0];
   const isOverdue = chore.nextDueDate && chore.nextDueDate < today;
 
+  const handleComplete = async () => {
+    if (completing || doneToday) return;
+    setCompleting(true);
+    await onComplete(chore.id);
+    setCompleting(false);
+  };
+
   return (
-    <div className={`bg-white rounded-xl border px-4 py-3 flex items-center gap-3 ${isOverdue ? 'border-red-100' : 'border-gray-100'}`}>
+    <div className={`bg-white rounded-xl border px-4 py-3 flex items-center gap-3 ${
+      doneToday ? 'border-green-200 bg-green-50' : isOverdue ? 'border-red-100' : 'border-gray-100'
+    }`}>
       <button
-        onClick={() => onComplete(chore.id)}
-        className="shrink-0 w-7 h-7 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 flex items-center justify-center transition-colors"
-        title="Mark done"
+        onClick={handleComplete}
+        disabled={completing || doneToday}
+        className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
+          doneToday
+            ? 'border-green-500 bg-green-500 cursor-default'
+            : completing
+              ? 'border-gray-300 bg-gray-50'
+              : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+        }`}
+        title={doneToday ? 'Done today' : 'Mark done'}
       >
-        <Check size={14} className="text-gray-300" />
+        <Check size={14} className={doneToday ? 'text-white' : 'text-gray-300'} />
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-gray-800">{chore.name}</span>
+          <span className={`text-sm font-medium ${doneToday ? 'text-green-700' : 'text-gray-800'}`}>{chore.name}</span>
           <Badge color={FREQ_COLORS[chore.frequency] || 'gray'}>{chore.frequency}</Badge>
           {chore.assignedTo && <Badge color="indigo">{chore.assignedTo}</Badge>}
+          {doneToday && <Badge color="green">Done today</Badge>}
         </div>
-        {dateLabel && (
+        {dateLabel && !doneToday && (
           <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{dateLabel}</p>
         )}
       </div>

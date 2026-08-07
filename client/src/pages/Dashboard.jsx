@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Receipt, CheckSquare, Package, UtensilsCrossed, AlertCircle, ArrowRight } from 'lucide-react';
 import { dashboardApi } from '../api.js';
+import LowStockAlerts from '../components/LowStockAlerts.jsx';
 
 function StatCard({ to, icon: Icon, title, color, children, alert }) {
   return (
@@ -55,10 +56,13 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Good day</h1>
         <p className="text-sm text-gray-400 mt-0.5">{today}</p>
       </div>
+
+      {/* Low stock alerts — shown prominently on dashboard */}
+      <LowStockAlerts />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <StatCard to="/groceries" icon={ShoppingCart} title="Groceries" color="bg-green-500"

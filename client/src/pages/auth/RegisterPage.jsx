@@ -5,10 +5,12 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
 
+const MEMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+
 export default function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ householdName: '', name: '', email: '', password: '' });
+  const [form, setForm] = useState({ householdName: '', name: '', email: '', password: '', memberCount: null });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,15 +41,14 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Household name"
-              placeholder="e.g. The Smiths"
+              placeholder="e.g. The Sharmas"
               value={form.householdName}
               onChange={e => setForm(f => ({ ...f, householdName: e.target.value }))}
-              required
-              autoFocus
+              required autoFocus
             />
             <Input
               label="Your name"
-              placeholder="e.g. Alice"
+              placeholder="e.g. Raj"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               required
@@ -68,6 +69,42 @@ export default function RegisterPage() {
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               required
             />
+
+            {/* Optional member count */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                How many people in the household?
+                <span className="text-gray-400 font-normal ml-1">(optional)</span>
+              </p>
+              <p className="text-xs text-gray-400 mb-2">Used to suggest the right grocery quantities.</p>
+              <div className="flex gap-2 flex-wrap">
+                {MEMBER_OPTIONS.map(n => (
+                  <button
+                    key={n} type="button"
+                    onClick={() => setForm(f => ({ ...f, memberCount: f.memberCount === n ? null : n }))}
+                    className={`w-10 h-10 rounded-xl text-sm font-semibold border transition-colors ${
+                      form.memberCount === n
+                        ? 'bg-primary-600 text-white border-primary-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-primary-400'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, memberCount: f.memberCount === 9 ? null : 9 }))}
+                  className={`px-3 h-10 rounded-xl text-sm font-semibold border transition-colors ${
+                    form.memberCount === 9
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-primary-400'
+                  }`}
+                >
+                  9+
+                </button>
+              </div>
+            </div>
+
             {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating...' : 'Create household'}

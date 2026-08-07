@@ -18,7 +18,7 @@ router.get('/', async (req, res, next) => {
 const billSchema = z.object({
   name: z.string().min(1).max(200),
   amount: z.number().positive(),
-  currency: z.string().default('USD'),
+  currency: z.string().default('INR'),
   category: z.string().default('other'),
   dueDay: z.number().int().min(1).max(31).nullable().default(null),
   frequency: z.enum(['weekly', 'biweekly', 'monthly', 'quarterly', 'annual', 'one-time']).default('monthly'),

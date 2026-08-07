@@ -7,14 +7,15 @@ generator client {
 }
 
 datasource db {
-  provider = env("DATABASE_PROVIDER")
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model Household {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  memberCount Int?
+  createdAt   DateTime @default(now())
 
   users           User[]
   groceryLists    GroceryList[]
@@ -119,9 +120,17 @@ model InventoryItem {
   maintenanceNotes    String    @default("")
   location            String    @default("")
   notes               String    @default("")
+  // Auto-populated from grocery
+  purchasedBy         String    @default("")
+  stockQuantity       String    @default("")
+  estimatedEndDate    String?
+  monthlyFrequency    Float?
+  shelfLifeDays       Int?
+  fromGrocery         Boolean   @default(false)
   householdId         String
   household           Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model Meal {
@@ -151,6 +160,7 @@ model MealPlanEntry {
   lunch         Meal?     @relation("LunchMeal", fields: [lunchId], references: [id], onDelete: SetNull)
   dinner        Meal?     @relation("DinnerMeal", fields: [dinnerId], references: [id], onDelete: SetNull)
   notes         String    @default("")
+  cookedSlots   String    @default("[]")
   householdId   String
   household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())

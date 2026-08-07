@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Trash2, Crown, User } from 'lucide-react';
+import { UserPlus, Trash2, Crown, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { authApi } from '../../api.js';
 import PageHeader from '../../components/layout/PageHeader.jsx';
@@ -9,9 +9,10 @@ import Modal from '../../components/ui/Modal.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 
 const EMPTY_INVITE = { name: '', email: '', password: '', role: 'member' };
+const MEMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function AccountPage() {
-  const { user, household, logout, updateUser } = useAuth();
+  const { user, household, logout, updateUser, updateHouseholdCtx } = useAuth();
   const [members, setMembers] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteForm, setInviteForm] = useState(EMPTY_INVITE);
@@ -20,6 +21,8 @@ export default function AccountPage() {
   const [profileForm, setProfileForm] = useState({ name: user?.name || '', currentPassword: '', newPassword: '' });
   const [profileMsg, setProfileMsg] = useState('');
   const [profileError, setProfileError] = useState('');
+  const [memberCount, setMemberCount] = useState(household?.memberCount ?? null);
+  const [memberCountMsg, setMemberCountMsg] = useState('');
 
   useEffect(() => {
     authApi.getMembers().then(setMembers).catch(() => {});
@@ -56,8 +59,7 @@ export default function AccountPage() {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setProfileMsg('');
-    setProfileError('');
+    setProfileMsg(''); setProfileError('');
     try {
       const data = {};
       if (profileForm.name !== user.name) data.name = profileForm.name;
@@ -75,9 +77,66 @@ export default function AccountPage() {
     }
   };
 
+  const handleSaveMemberCount = async (count) => {
+    setMemberCount(count);
+    setMemberCountMsg('');
+    try {
+      const updated = await authApi.updateHousehold({ memberCount: count });
+      updateHouseholdCtx(updated);
+      setMemberCountMsg('Saved');
+      setTimeout(() => setMemberCountMsg(''), 2000);
+    } catch {}
+  };
+
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto">
       <PageHeader title="Account & Household" subtitle={household?.name} />
+
+      {/* Household size */}
+      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Users size={15} className="text-gray-400" /> Household Size
+          </h2>
+          {memberCountMsg && <span className="text-xs text-green-600 font-medium">{memberCountMsg}</span>}
+        </div>
+        <p className="text-xs text-gray-400 mb-3">Used to suggest the right grocery quantities when you add items.</p>
+        <div className="flex gap-2 flex-wrap">
+          {MEMBER_OPTIONS.map(n => (
+            <button key={n} type="button"
+              onClick={() => handleSaveMemberCount(memberCount === n ? null : n)}
+              className={`w-10 h-10 rounded-xl text-sm font-semibold border transition-colors ${
+                memberCount === n
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-primary-400'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <button type="button"
+            onClick={() => handleSaveMemberCount(memberCount === 9 ? null : 9)}
+            className={`px-3 h-10 rounded-xl text-sm font-semibold border transition-colors ${
+              memberCount === 9
+                ? 'bg-primary-600 text-white border-primary-600'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-primary-400'
+            }`}
+          >
+            9+
+          </button>
+          {memberCount && (
+            <button type="button" onClick={() => handleSaveMemberCount(null)}
+              className="px-3 h-10 rounded-xl text-sm text-gray-400 border border-gray-200 hover:border-gray-300 transition-colors">
+              Clear
+            </button>
+          )}
+        </div>
+        {memberCount && (
+          <p className="text-xs text-primary-600 mt-2 font-medium">
+            Grocery quantities will be suggested for {memberCount} {memberCount === 1 ? 'person' : 'people'}
+          </p>
+        )}
+      </div>
 
       {/* Profile section */}
       <div className="bg-white rounded-xl border border-gray-100 p-5 mb-5">
@@ -136,7 +195,6 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* Sign out */}
       <Button variant="secondary" onClick={logout} className="w-full">Sign out</Button>
 
       {/* Invite modal */}

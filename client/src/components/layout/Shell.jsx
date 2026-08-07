@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar.jsx';
 import BottomNav from './BottomNav.jsx';
+import VoiceCommand from '../VoiceCommand.jsx';
 
 export default function Shell({ children }) {
   return (
@@ -9,6 +10,7 @@ export default function Shell({ children }) {
         {children}
       </main>
       <BottomNav />
+      <VoiceCommand />
     </div>
   );
 }

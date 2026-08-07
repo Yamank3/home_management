@@ -44,10 +44,15 @@ export function useInventory() {
     setItems(prev => prev.filter(i => i.id !== id));
   };
 
+  const bulkRemove = async (ids) => {
+    await inventoryApi.bulkRemove(ids);
+    setItems(prev => prev.filter(i => !ids.includes(i.id)));
+  };
+
   return {
     items, loading, error,
     search, setSearch,
     categoryFilter, setCategoryFilter,
-    create, update, remove,
+    create, update, remove, bulkRemove,
   };
 }

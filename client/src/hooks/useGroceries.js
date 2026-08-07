@@ -8,29 +8,23 @@ export function useGroceries() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchLists = useCallback(async () => {
-    try {
-      const data = await groceryApi.getLists();
-      setLists(data);
-      if (data.length > 0 && !activeListId) setActiveListId(data[0].id);
-    } catch (e) {
-      setError(e.message);
-    }
-  }, [activeListId]);
-
   const fetchItems = useCallback(async (listId) => {
     if (!listId) return;
     try {
       const data = await groceryApi.getItems(listId);
       setItems(data);
-    } catch (e) {
-      setError(e.message);
-    }
+    } catch (e) { setError(e.message); }
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    fetchLists().finally(() => setLoading(false));
+    groceryApi.getLists()
+      .then(data => {
+        setLists(data);
+        if (data.length > 0) setActiveListId(data[0].id);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -42,17 +36,7 @@ export function useGroceries() {
     setLists(prev => [list, ...prev]);
     setActiveListId(list.id);
     setItems([]);
-  };
-
-  const deleteList = async (id) => {
-    await groceryApi.deleteList(id);
-    const remaining = lists.filter(l => l.id !== id);
-    setLists(remaining);
-    if (activeListId === id) {
-      const next = remaining[0]?.id || null;
-      setActiveListId(next);
-      if (next) fetchItems(next); else setItems([]);
-    }
+    return list;
   };
 
   const addItem = async (data) => {
@@ -60,14 +44,25 @@ export function useGroceries() {
     setItems(prev => [...prev, item]);
   };
 
-  const toggleBought = async (id, bought) => {
-    const updated = await groceryApi.updateItem(id, { bought });
+  const toggleBought = async (id, bought, edits = {}) => {
+    // If marking as bought, apply any edits (quantity, note, shelfLifeDays) in the same call
+    const data = { bought, ...edits };
+    const updated = await groceryApi.updateItem(id, data);
     setItems(prev => prev.map(i => i.id === id ? updated : i));
   };
 
-  const updateItem = async (id, data) => {
-    const updated = await groceryApi.updateItem(id, data);
-    setItems(prev => prev.map(i => i.id === id ? updated : i));
+  const reAddItem = async (item) => {
+    // Add a fresh unbought copy of the same item back to the list
+    const fresh = await groceryApi.addItem({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity,
+      note: item.note,
+      monthlyFrequency: item.monthlyFrequency,
+      shelfLifeDays: item.shelfLifeDays,
+      listId: activeListId,
+    });
+    setItems(prev => [...prev, fresh]);
   };
 
   const removeItem = async (id) => {
@@ -83,6 +78,6 @@ export function useGroceries() {
   return {
     lists, items, activeListId, setActiveListId,
     loading, error,
-    createList, deleteList, addItem, toggleBought, updateItem, removeItem, clearBought,
+    createList, addItem, toggleBought, reAddItem, removeItem, clearBought,
   };
 }

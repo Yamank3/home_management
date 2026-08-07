@@ -69,6 +69,15 @@ export function useMeals() {
 
   const addToGroceries = (mealId, listId) => mealsApi.addToGroceries(mealId, listId);
 
+  const markCooked = async (date, slot) => {
+    const entry = plan.find(p => p.date === date);
+    if (!entry?.id) return null;
+    const result = await mealsApi.cookSlot(entry.id, slot);
+    // Update plan state with new cookedSlots
+    setPlan(prev => prev.map(p => p.date === date ? result.entry : p));
+    return result;
+  };
+
   const prevWeek = () => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() - 7);
@@ -84,7 +93,7 @@ export function useMeals() {
   return {
     meals, plan, weekStart, loading, error,
     createMeal, updateMeal, removeMeal,
-    setPlanDay, addToGroceries,
+    setPlanDay, addToGroceries, markCooked,
     prevWeek, nextWeek,
   };
 }
