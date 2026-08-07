@@ -30,7 +30,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
-  origin: IS_PROD ? false : ['http://localhost:5173', 'http://localhost:4173'],
+  origin: IS_PROD ? false : ['http://localhost:5173', 'http://localhost:4173', 'https://phenomenal-tartufo-63f9a8.netlify.app'],
   credentials: true,
 }));
 app.use(cookieParser());
