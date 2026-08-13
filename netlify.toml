@@ -4,7 +4,14 @@
   command = "npm run build"
   publish = "dist"
 
-# Redirect all routes to index.html for React Router SPA
+# Proxy /api/* to the Railway backend — must come BEFORE the SPA catch-all
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://YOUR_RAILWAY_URL/api/:splat"
+  status = 200
+  force  = true
+
+# Redirect all other routes to index.html for React Router SPA
 [[redirects]]
   from   = "/*"
   to     = "/index.html"

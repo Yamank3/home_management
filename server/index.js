@@ -29,8 +29,19 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 
 // Security
 app.use(helmet({ contentSecurityPolicy: false }));
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  process.env.CLIENT_URL, // set this to your Netlify URL in production
+].filter(Boolean);
+
 app.use(cors({
-  origin: IS_PROD ? false : ['http://localhost:5173', 'http://localhost:4173', 'https://phenomenal-tartufo-63f9a8.netlify.app'],
+  origin: (origin, cb) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(cookieParser());
