@@ -1,8 +1,9 @@
 # Railway deployment config
 [build]
   builder = "nixpacks"
+  buildCommand = "npm install && npx prisma generate"
 
 [deploy]
-  startCommand = "cd server && npm run db:migrate:prod && npm start"
+  startCommand = "npx prisma migrate deploy && npm start"
   healthcheckPath = "/api/ping"
   restartPolicyType = "on_failure"
