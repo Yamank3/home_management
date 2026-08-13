@@ -1,13 +1,13 @@
-// This is your Prisma schema file
-// Local dev: DATABASE_URL=file:/path/to/app.db  (SQLite)
-// Production: DATABASE_URL=postgresql://...      (Postgres on Railway)
+// Local dev schema — uses SQLite
+// Run: npm run db:generate:dev  (after schema changes)
+// Run: npm run db:migrate       (to apply migrations locally)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -120,7 +120,6 @@ model InventoryItem {
   maintenanceNotes    String    @default("")
   location            String    @default("")
   notes               String    @default("")
-  // Auto-populated from grocery
   purchasedBy         String    @default("")
   stockQuantity       String    @default("")
   estimatedEndDate    String?
