@@ -1,4 +1,4 @@
-# Home Management App
+# Home Management App - Personal
 
 A full-stack home management web app for managing groceries, bills, chores, household inventory, and meal planning. Runs locally on your home network — accessible from any browser or phone on the same WiFi.
 
