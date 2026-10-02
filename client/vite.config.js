@@ -2,10 +2,12 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
+      // The native app bundles its own assets; a service worker would only add stale-cache risk.
+      disable: mode === 'android',
       registerType: 'autoUpdate',
       manifest: {
         name: 'Home Management',
@@ -37,4 +39,4 @@ export default defineConfig({
       '/api': 'http://localhost:3001',
     },
   },
-});
+}));

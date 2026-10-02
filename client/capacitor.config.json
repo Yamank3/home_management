@@ -1,0 +1,6 @@
+{
+  "appId": "com.homemanagement.app",
+  "appName": "Home Manager",
+  "webDir": "dist",
+  "server": { "androidScheme": "https" }
+}
