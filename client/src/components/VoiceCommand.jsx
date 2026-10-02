@@ -165,7 +165,7 @@ export default function VoiceCommand() {
       <button
         onClick={startListening}
         title={state === 'idle' ? 'Voice command' : 'Stop'}
-        className={`fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all duration-200 ${fabClass}`}
+        className={`fixed bottom-[5.5rem] right-4 md:bottom-6 md:right-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-white transition-all duration-200 ${fabClass}`}
       >
         {state === 'listening'  ? <MicOff size={22} /> :
          state === 'processing' ? <Loader2 size={22} className="animate-spin" /> :

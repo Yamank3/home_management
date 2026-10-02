@@ -331,7 +331,7 @@ export default function MealsPage() {
                     <span className="text-xs text-gray-400">{new Date(date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                     {isToday && <Badge color="indigo">Today</Badge>}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {SLOTS.map(slot => {
                       const meal = slot === 'breakfast' ? entry.breakfastMeal
                                  : slot === 'lunch'     ? entry.lunchMeal
@@ -340,8 +340,9 @@ export default function MealsPage() {
                                    : slot === 'lunch'     ? entry.lunch
                                    :                        entry.dinner;
                       return (
-                        <div key={slot}>
-                          <p className="text-xs text-gray-400 capitalize mb-1">{slot}</p>
+                        <div key={slot} className="flex items-start gap-3 sm:block">
+                          <p className="w-16 shrink-0 pt-2 sm:pt-0 text-xs text-gray-400 capitalize sm:mb-1">{slot}</p>
+                          <div className="flex-1 min-w-0">
                           {meal ? (() => {
                             const isCooked = entry.cookedSlots?.includes(slot);
                             return (
@@ -380,6 +381,7 @@ export default function MealsPage() {
                               + Add
                             </button>
                           )}
+                          </div>
                         </div>
                       );
                     })}

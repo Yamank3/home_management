@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2, CheckCircle, Circle, Receipt, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Pencil, CheckCircle, Circle, Receipt, AlertCircle } from 'lucide-react';
 import { useBills } from '../../hooks/useBills.js';
+import { formatMoney as fmt } from '../../utils/format.js';
 import PageHeader from '../../components/layout/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Badge from '../../components/ui/Badge.jsx';
@@ -17,10 +18,6 @@ const CAT_COLORS = {
 };
 
 const EMPTY_FORM = { name: '', amount: '', currency: 'INR', category: 'utilities', dueDay: '', frequency: 'monthly', notes: '' };
-
-function fmt(amount, currency = 'INR') {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount);
-}
 
 function dueSoonColor(nextDueDate) {
   if (!nextDueDate) return '';
@@ -178,9 +175,11 @@ function BillCard({ bill, onTogglePaid, onEdit, onDelete }) {
       </div>
       <span className="font-semibold text-gray-700 shrink-0">{fmt(bill.amount, bill.currency)}</span>
       <div className="flex gap-1 shrink-0">
-        <button onClick={() => onEdit(bill)} className="p-1 text-gray-300 hover:text-primary-500 transition-colors text-xs">Edit</button>
-        <button onClick={() => { if (confirm('Delete this bill?')) onDelete(bill.id); }} className="p-1 text-gray-300 hover:text-red-400 transition-colors">
-          <Trash2 size={14} />
+        <button onClick={() => onEdit(bill)} aria-label="Edit bill" className="p-2 -m-1 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-gray-100 transition-colors">
+          <Pencil size={15} />
+        </button>
+        <button onClick={() => onDelete(bill.id)} aria-label="Delete bill" className="p-2 -m-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors">
+          <Trash2 size={15} />
         </button>
       </div>
     </div>

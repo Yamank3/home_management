@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Package, Search, Wrench, ShoppingCart, CalendarClock, User, CheckSquare, Square } from 'lucide-react';
 import { useInventory } from '../../hooks/useInventory.js';
 import PageHeader from '../../components/layout/PageHeader.jsx';
@@ -67,6 +67,14 @@ export default function InventoryPage() {
   const [selectMode, setSelectMode]     = useState(false);
   const [selected, setSelected]         = useState(new Set());
   const [deleting, setDeleting]         = useState(false);
+
+  // Open on the tab that has content, once, after the first load.
+  const tabChosen = useRef(false);
+  useEffect(() => {
+    if (loading || tabChosen.current) return;
+    tabChosen.current = true;
+    if (!items.some(i => i.fromGrocery) && items.length > 0) setTab('household');
+  }, [loading, items]);
 
   const toggleSelect = (id) =>
     setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
@@ -177,7 +185,7 @@ export default function InventoryPage() {
               const count = g.catIds
                 ? groceryItems.filter(i => g.catIds.includes(i.category)).length
                 : groceryItems.length;
-              if (g.id !== 'all' && count === 0) return null; // hide empty groups
+              if (count === 0) return null; // hide empty groups
               return (
                 <button
                   key={g.id}
@@ -202,7 +210,7 @@ export default function InventoryPage() {
           <div className="relative mb-4">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-primary-500 bg-white"
+              className="w-full pl-9 pr-3 py-2.5 text-base sm:text-sm border border-gray-200 rounded-xl outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 bg-surface"
               placeholder="Search items…"
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -312,17 +320,17 @@ export default function InventoryPage() {
         <>
           {/* Search + category filter */}
           <div className="flex gap-2 mb-4">
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-primary-500 bg-white"
+                className="w-full pl-9 pr-3 py-2.5 text-base sm:text-sm border border-gray-200 rounded-xl outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 bg-surface"
                 placeholder="Search items…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
             <select
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white outline-none focus:border-primary-500"
+              className="w-36 sm:w-auto shrink-0 px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-surface outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
             >

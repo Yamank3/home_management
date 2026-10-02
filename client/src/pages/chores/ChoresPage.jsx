@@ -207,8 +207,8 @@ function ChoreItem({ chore, onComplete, onDelete, doneToday }) {
           <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{dateLabel}</p>
         )}
       </div>
-      <button onClick={() => { if (confirm('Delete this chore?')) onDelete(chore.id); }} className="p-1 text-gray-300 hover:text-red-400 transition-colors shrink-0">
-        <Trash2 size={14} />
+      <button onClick={() => onDelete(chore.id)} aria-label="Delete chore" className="p-2 -m-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors shrink-0">
+        <Trash2 size={15} />
       </button>
     </div>
   );

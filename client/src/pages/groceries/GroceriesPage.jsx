@@ -226,8 +226,8 @@ export default function GroceriesPage() {
                   </div>
                   <span className="text-base shrink-0">{m.emoji}</span>
                   <button onClick={() => removeItem(item.id)}
-                    className="p-1 text-gray-300 hover:text-red-400 transition-colors">
-                    <Trash2 size={14} />
+                    aria-label="Delete item" className="p-2 -m-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors">
+                    <Trash2 size={15} />
                   </button>
                 </div>
               ))}
@@ -255,8 +255,8 @@ export default function GroceriesPage() {
                   <RotateCcw size={12} /> Re-add
                 </button>
                 <button onClick={() => removeItem(item.id)}
-                  className="p-1 text-gray-300 hover:text-red-400 transition-colors shrink-0">
-                  <Trash2 size={14} />
+                  aria-label="Delete item" className="p-2 -m-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors shrink-0">
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))}

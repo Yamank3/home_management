@@ -48,7 +48,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Rate limit auth endpoints
+// Brute-force protection for credential endpoints only (not /me or /refresh)
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true });
 
 // Routes
@@ -69,7 +69,8 @@ app.get('/api/meals/recipe', (req, res) => {
   if (!recipe) return res.json({ success: true, data: null });
   res.json({ success: true, data: scaleRecipe(recipe, servings) });
 });
-app.use('/api/auth', authLimiter, authRouter);
+app.use(['/api/auth/login', '/api/auth/register'], authLimiter);
+app.use('/api/auth', authRouter);
 
 // All other API routes require authentication
 app.use('/api/groceries', requireAuth, groceriesRouter);

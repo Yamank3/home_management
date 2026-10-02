@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { billsApi } from '../api.js';
+import { useUndoableRemove } from './useUndoableRemove.js';
 
 export function useBills() {
   const [bills, setBills] = useState([]);
@@ -34,11 +35,9 @@ export function useBills() {
     fetchAll();
   };
 
-  const remove = async (id) => {
-    await billsApi.remove(id);
-    setBills(prev => prev.filter(b => b.id !== id));
-    fetchAll();
-  };
+  const remove = useUndoableRemove({
+    items: bills, setItems: setBills, apiRemove: billsApi.remove, label: b => b.name, onCommitted: fetchAll,
+  });
 
   const markPaid = async (id, isPaid) => {
     const updated = await billsApi.update(id, { isPaid });

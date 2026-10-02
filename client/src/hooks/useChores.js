@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { choresApi } from '../api.js';
+import { useUndoableRemove } from './useUndoableRemove.js';
 
 export function useChores() {
   const [chores, setChores] = useState([]);
@@ -35,10 +36,9 @@ export function useChores() {
     setChores(prev => prev.map(c => c.id === id ? updated : c));
   };
 
-  const remove = async (id) => {
-    await choresApi.remove(id);
-    setChores(prev => prev.filter(c => c.id !== id));
-  };
+  const remove = useUndoableRemove({
+    items: chores, setItems: setChores, apiRemove: choresApi.remove, label: c => c.name,
+  });
 
   const today = new Date().toISOString().split('T')[0];
   const overdue = chores.filter(c => c.nextDueDate && c.nextDueDate < today);

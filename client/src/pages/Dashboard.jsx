@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Receipt, CheckSquare, Package, UtensilsCrossed, ChevronRight } from 'lucide-react';
 import { dashboardApi } from '../api.js';
+import { formatMoney } from '../utils/format.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LowStockAlerts from '../components/LowStockAlerts.jsx';
 
@@ -90,7 +91,7 @@ export default function Dashboard() {
             status={g.itemsToBuy > 0 ? { tone: 'warn', label: 'Shopping needed' } : { tone: 'ok', label: 'All stocked' }}
           />
           <StatCard to="/bills" icon={Receipt} title="Bills due soon" tint="bg-blue-500"
-            value={`$${(b.dueSoonTotal ?? 0).toFixed(0)}`}
+            value={formatMoney(b.dueSoonTotal ?? 0)}
             detail={b.dueSoonCount > 0 ? `${b.dueSoonCount} due within 7 days` : 'Nothing due this week'}
             status={b.dueSoonCount > 0 ? { tone: 'warn', label: `${b.dueSoonCount} due` } : { tone: 'ok', label: 'All clear' }}
           />

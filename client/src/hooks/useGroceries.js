@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { groceryApi } from '../api.js';
+import { useUndoableRemove } from './useUndoableRemove.js';
 
 export function useGroceries() {
   const [lists, setLists] = useState([]);
@@ -65,10 +66,9 @@ export function useGroceries() {
     setItems(prev => [...prev, fresh]);
   };
 
-  const removeItem = async (id) => {
-    await groceryApi.removeItem(id);
-    setItems(prev => prev.filter(i => i.id !== id));
-  };
+  const removeItem = useUndoableRemove({
+    items, setItems, apiRemove: groceryApi.removeItem, label: i => i.name,
+  });
 
   const clearBought = async () => {
     await groceryApi.clearBought(activeListId);
