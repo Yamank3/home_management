@@ -3,7 +3,7 @@
 // The geometry mirrors public/icons/icon-192.svg (a 192-unit house on an indigo
 // tile). Run: npm run icons
 import { deflateSync } from 'node:zlib';
-import { writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -82,7 +82,7 @@ function png(w, h, opts) {
   ]);
 }
 
-const write = (path, w, h, opts) => { writeFileSync(path, png(w, h, opts)); console.log('wrote', path.replace(OUT + '/', '')); };
+const write = (path, w, h, opts) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, png(w, h, opts)); console.log('wrote', path.replace(OUT + '/', '')); };
 
 for (const [name, size, tile] of [
   ['icon-192.png', 192, 'rounded'],
@@ -101,6 +101,8 @@ if (existsSync(RES)) {
     write(join(dir, 'ic_launcher_round.png'), 48 * k, 48 * k, { tile: 'circle' });
     // Adaptive foreground: 108dp canvas, only the inner ~61% circle is always visible.
     write(join(dir, 'ic_launcher_foreground.png'), 108 * k, 108 * k, { tile: 'none', glyph: 0.95 });
+    // Notification (status bar) icon: Android tints it, so only the white shape matters.
+    write(join(RES, `drawable-${d}`, 'ic_stat_home.png'), 24 * k, 24 * k, { tile: 'none', glyph: 1.4 });
     write(join(RES, `drawable-port-${d}`, 'splash.png'), 320 * k, 480 * k, { tile: 'full', glyph: 0.35 });
     write(join(RES, `drawable-land-${d}`, 'splash.png'), 480 * k, 320 * k, { tile: 'full', glyph: 0.35 });
   }

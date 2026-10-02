@@ -367,6 +367,28 @@ The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to 
 
 ---
 
+### Offline Use (done)
+
+The app opens and works without a connection. Every successful read is saved per user (`client/src/offline`), so
+screens show your last data with an "offline" banner. Grocery items, bill updates and deletes, and chore completion
+and deletion made offline are shown immediately, queued, and replayed in order when the connection returns
+(temporary ids are swapped for real ones; edits the server rejects are reported). Other edits, such as creating a
+bill, need a connection and say so. Signing out clears the saved copy. Tests: `npm test --prefix client`.
+
+Limits: a request that reached the server but lost its response can be replayed once more, so an offline grocery add
+could, rarely, appear twice.
+
+### Reminder Notifications (Android, done)
+
+The Android app schedules notifications on the phone itself (Capacitor Local Notifications) at 9:00 local time:
+the day before and the day of a bill, chores due, maintenance, warranties and low stock. The schedule comes from
+`GET /api/reminders/schedule` and is refreshed whenever the app starts, regains focus or data changes, so reminders
+fire with no connection and survive a restart. Turn them off under Account. Because they are scheduled on the
+device, a change made on another phone is picked up the next time this app syncs. Instant "someone did X" push
+would need Firebase Cloud Messaging (a Firebase project and a server key) and is not set up.
+
+---
+
 ### Android App (debug APK)
 
 The Android app is the web app wrapped with Capacitor (`client/android`). It talks to the server named in

@@ -2,6 +2,7 @@ import Sidebar from './Sidebar.jsx';
 import BottomNav from './BottomNav.jsx';
 import VoiceCommand from '../VoiceCommand.jsx';
 import OfflineStatus from '../OfflineStatus.jsx';
+import NativeNotifications from '../NativeNotifications.jsx';
 import { LiveSyncProvider } from '../../context/LiveSyncContext.jsx';
 import { RemindersProvider } from '../../context/RemindersContext.jsx';
 
@@ -17,6 +18,7 @@ export default function Shell({ children }) {
         </main>
         <BottomNav />
         <VoiceCommand />
+        <NativeNotifications />
       </div>
     </RemindersProvider>
     </LiveSyncProvider>

@@ -248,6 +248,7 @@ export const dashboardApi = {
 
 export const remindersApi = {
   getAll: () => get('/reminders'),
+  getSchedule: () => get('/reminders/schedule'),
 };
 
 export const voiceApi = {

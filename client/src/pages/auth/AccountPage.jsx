@@ -8,6 +8,7 @@ import Input from '../../components/ui/Input.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import { useToast } from '../../components/ui/Toast.jsx';
+import NotificationSettings from '../../components/NotificationSettings.jsx';
 
 const EMPTY_INVITE = { name: '', email: '', password: '', role: 'member' };
 const MEMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -145,6 +146,8 @@ export default function AccountPage() {
           </p>
         )}
       </div>
+
+      <NotificationSettings />
 
       {/* Profile section */}
       <div className="bg-surface rounded-2xl border border-gray-100 shadow-card p-5 mb-5">

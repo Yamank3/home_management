@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi, AUTH_EXPIRED_EVENT } from '../api.js';
 import { tokenStore } from '../tokenStore.js';
+import { cancelAll } from '../notifications/native.js';
 
 export const AuthContext = createContext(null);
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    await cancelAll().catch(() => {});
     await authApi.logout();
     setUser(null);
     setHousehold(null);
