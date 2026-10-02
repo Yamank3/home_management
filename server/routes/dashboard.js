@@ -1,11 +1,13 @@
 const express = require('express');
 const prisma = require('../db');
+const { resetPaidBills } = require('../utils/billCycle');
 
 const router = express.Router();
 
 router.get('/summary', async (req, res, next) => {
   try {
     const hid = req.householdId;
+    await resetPaidBills(prisma, hid);
     const today = new Date().toISOString().split('T')[0];
     const in7Days = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
     const in30Days = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];

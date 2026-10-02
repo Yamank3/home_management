@@ -17,7 +17,7 @@ const CAT_COLORS = {
   'rent/mortgage': 'orange', loans: 'red', other: 'gray',
 };
 
-const EMPTY_FORM = { name: '', amount: '', currency: 'INR', category: 'utilities', dueDay: '', frequency: 'monthly', notes: '' };
+const EMPTY_FORM = { name: '', amount: '', currency: 'INR', category: 'utilities', frequency: 'monthly', nextDueDate: '', notes: '' };
 
 function dueSoonColor(nextDueDate) {
   if (!nextDueDate) return '';
@@ -36,10 +36,11 @@ export default function BillsPage() {
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.amount) return;
+    const { name, currency, category, frequency, notes } = form;
     const payload = {
-      ...form,
-      amount:  parseFloat(form.amount),
-      dueDay:  form.dueDay !== '' ? parseInt(form.dueDay) : null,
+      name, currency, category, frequency, notes,
+      amount: parseFloat(form.amount),
+      nextDueDate: form.nextDueDate || null,
     };
     if (editId) {
       await update(editId, payload);
@@ -52,7 +53,7 @@ export default function BillsPage() {
   };
 
   const openEdit = (bill) => {
-    setForm({ ...bill, amount: String(bill.amount), dueDay: String(bill.dueDay || '') });
+    setForm({ ...EMPTY_FORM, ...bill, amount: String(bill.amount), nextDueDate: bill.nextDueDate || '' });
     setEditId(bill.id);
     setShowAdd(true);
   };
@@ -146,7 +147,12 @@ export default function BillsPage() {
               {FREQUENCIES.map(freq => <option key={freq} value={freq}>{freq.charAt(0).toUpperCase() + freq.slice(1)}</option>)}
             </Select>
           </div>
-          <Input label="Due day of month (optional)" type="number" min="1" max="31" placeholder="e.g. 15" value={form.dueDay} onChange={e => setForm(f => ({ ...f, dueDay: e.target.value }))} />
+          <div>
+            <Input label={form.frequency === 'one-time' ? 'Due date (optional)' : 'Next due date'} type="date" value={form.nextDueDate} onChange={e => setForm(f => ({ ...f, nextDueDate: e.target.value }))} />
+            {form.frequency !== 'one-time' && (
+              <p className="text-xs text-gray-400 mt-1">Repeats {form.frequency}. Once you mark it paid, it moves to the next due date by itself.</p>
+            )}
+          </div>
           <Input label="Notes (optional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
         </div>
       </Modal>
@@ -165,6 +171,9 @@ function BillCard({ bill, onTogglePaid, onEdit, onDelete }) {
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-sm font-medium ${bill.isPaid ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{bill.name}</span>
           <Badge color={CAT_COLORS[bill.category] || 'gray'}>{bill.category}</Badge>
+          {bill.nextDueDate && bill.isPaid && bill.frequency !== 'one-time' && (
+            <span className="text-xs text-gray-400">Paid · next due {bill.nextDueDate}</span>
+          )}
           {bill.nextDueDate && !bill.isPaid && (
             <span className={`text-xs ${bill.nextDueDate < new Date().toISOString().split('T')[0] ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
               Due {bill.nextDueDate}
