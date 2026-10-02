@@ -1,4 +1,6 @@
 import { tokenStore } from './tokenStore.js';
+import { ownerFromToken, cacheGet, cacheSet, cacheClear, queueOffline, pendingCount, flush } from './offline/offline.js';
+import { connectivity } from './offline/connectivity.js';
 
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -7,12 +9,32 @@ export const AUTH_EXPIRED_EVENT = 'auth:expired';
 // Identifies this tab/app instance so live sync can skip echoing our own writes.
 export const CLIENT_ID = Math.random().toString(36).slice(2);
 
+// A request that never got a usable answer: no connection, timeout, or a gateway
+// error from a proxy. Callers treat this as "offline", distinct from a server error.
+class NetworkError extends Error {
+  constructor() { super("You appear to be offline"); this.offline = true; }
+}
+
+const TIMEOUT_MS = 15000;
+
+async function netFetch(url, init, { stream = false } = {}) {
+  let res;
+  try {
+    res = await fetch(url, { ...init, signal: init.signal ?? (stream ? undefined : AbortSignal.timeout(TIMEOUT_MS)) });
+  } catch (e) {
+    if (e.name === 'AbortError' && init.signal) throw e; // the caller cancelled it on purpose
+    throw new NetworkError();
+  }
+  if ([502, 503, 504].includes(res.status)) throw new NetworkError();
+  return res;
+}
+
 function send(method, path, body, signal) {
   const token = tokenStore.getAccess();
   const headers = { 'X-Client-Id': CLIENT_ID };
   if (body) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
-  return fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined, signal });
+  return netFetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined, signal }, { stream: !!signal });
 }
 
 // Single-flight so concurrent 401s trigger one refresh. Tokens are only discarded
@@ -22,7 +44,7 @@ function refreshSession() {
   refreshing ??= (async () => {
     const refreshToken = tokenStore.getRefresh();
     if (!refreshToken) return false;
-    const res = await fetch(`${BASE}/auth/refresh`, {
+    const res = await netFetch(`${BASE}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -42,7 +64,8 @@ function refreshSession() {
 
 const CREDENTIAL_PATHS = ['/auth/login', '/auth/register'];
 
-async function request(method, path, body) {
+// One attempt, with a token refresh if the access token expired.
+async function requestOnce(method, path, body) {
   let res = await send(method, path, body);
   if (res.status === 401 && !CREDENTIAL_PATHS.includes(path) && await refreshSession()) {
     res = await send(method, path, body);
@@ -54,6 +77,55 @@ async function request(method, path, body) {
     throw err;
   }
   return json.data;
+}
+
+const currentOwner = () => ownerFromToken(tokenStore.getRefresh());
+const refreshPending = () => { const owner = currentOwner(); connectivity.setPending(owner ? pendingCount(owner) : 0); };
+refreshPending();
+
+// Reads fall back to the last saved copy when offline; edits that can be reproduced
+// locally are queued and replayed later (see offline/offline.js).
+async function request(method, path, body) {
+  const owner = currentOwner();
+  try {
+    const data = await requestOnce(method, path, body);
+    connectivity.setOffline(false);
+    if (method === 'GET' && owner) cacheSet(owner, path, data);
+    return data;
+  } catch (e) {
+    if (!e.offline) throw e;
+    connectivity.setOffline(true);
+    if (method === 'GET') {
+      const saved = owner ? cacheGet(owner, path) : undefined;
+      if (saved !== undefined) return saved;
+    } else {
+      const queued = owner && queueOffline(owner, method, path, body);
+      if (queued) { refreshPending(); return queued.result; }
+      window.dispatchEvent(new Event(OFFLINE_BLOCKED_EVENT));
+    }
+    throw e;
+  }
+}
+
+export const OFFLINE_BLOCKED_EVENT = 'offline:blocked';
+export const SYNC_FLUSHED_EVENT = 'offline:flushed';
+
+let flushing = false;
+// Sends edits made while offline. Safe to call any time; does nothing if empty.
+export async function flushOutbox() {
+  const owner = currentOwner();
+  if (!owner || flushing || pendingCount(owner) === 0) return;
+  flushing = true;
+  try {
+    const result = await flush(owner, requestOnce);
+    if (result.sent.length) connectivity.setOffline(false);
+    if (result.sent.length || result.failed.length) {
+      window.dispatchEvent(new CustomEvent(SYNC_FLUSHED_EVENT, { detail: result }));
+    }
+  } catch { /* leave the queue for the next attempt */ } finally {
+    flushing = false;
+    refreshPending();
+  }
 }
 
 // Reads the household event stream (Server-Sent Events over fetch, since
@@ -96,7 +168,11 @@ const startSession = ({ accessToken, refreshToken, ...rest }) => {
 export const authApi = {
   register: (data) => post('/auth/register', data).then(startSession),
   login: (data) => post('/auth/login', data).then(startSession),
-  logout: async () => tokenStore.clear(),
+  logout: async () => {
+    const owner = currentOwner();
+    if (owner) cacheClear(owner); // don't leave this user's data on a shared device
+    tokenStore.clear();
+  },
   me: () => get('/auth/me'),
   updateMe: (data) => patch('/auth/me', data).then(({ user, ...tokens }) => {
     if (tokens.accessToken) tokenStore.set(tokens);

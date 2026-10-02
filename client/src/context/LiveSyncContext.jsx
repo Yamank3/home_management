@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef } from 'react';
-import { streamEvents, CLIENT_ID } from '../api.js';
+import { streamEvents, CLIENT_ID, SYNC_FLUSHED_EVENT } from '../api.js';
 
 // Areas of data a screen can depend on; matches the server's utils/realtime.js.
 export const ALL_MODULES = ['groceries', 'inventory', 'bills', 'chores', 'meals'];
@@ -34,6 +34,9 @@ export function LiveSyncProvider({ children }) {
 
     const onVisible = () => { if (document.visibilityState === 'visible') notify(ALL_MODULES); };
     document.addEventListener('visibilitychange', onVisible);
+    // Edits made offline just reached the server: show the real (server-assigned) data.
+    const onFlushed = () => notify(ALL_MODULES);
+    window.addEventListener(SYNC_FLUSHED_EVENT, onFlushed);
     const fallback = setInterval(() => notify(ALL_MODULES), FALLBACK_MS);
 
     (async () => {
@@ -64,6 +67,7 @@ export function LiveSyncProvider({ children }) {
       clearTimeout(timer);
       clearInterval(fallback);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener(SYNC_FLUSHED_EVENT, onFlushed);
     };
   }, []);
 
