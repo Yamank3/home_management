@@ -12,7 +12,7 @@ const COLORS = {
 
 export default function Badge({ children, color = 'gray', className = '' }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${COLORS[color] || COLORS.gray} ${className}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${COLORS[color] || COLORS.gray} ${className}`}>
       {children}
     </span>
   );

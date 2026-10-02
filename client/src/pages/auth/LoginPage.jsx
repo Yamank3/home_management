@@ -29,10 +29,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-600">Home</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary-600">Home Manager</h1>
           <p className="text-gray-500 mt-1">Sign in to your household</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-surface rounded-2xl border border-gray-100 shadow-float p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Email"

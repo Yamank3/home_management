@@ -37,7 +37,7 @@ export default function RegisterPage() {
           <h1 className="text-3xl font-bold text-primary-600">Home Manager</h1>
           <p className="text-gray-500 mt-1">Create your household</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-surface rounded-2xl border border-gray-100 shadow-float p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Household name"

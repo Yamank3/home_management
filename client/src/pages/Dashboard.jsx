@@ -1,32 +1,58 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Receipt, CheckSquare, Package, UtensilsCrossed, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Receipt, CheckSquare, Package, UtensilsCrossed, ChevronRight } from 'lucide-react';
 import { dashboardApi } from '../api.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import LowStockAlerts from '../components/LowStockAlerts.jsx';
 
-function StatCard({ to, icon: Icon, title, color, children, alert }) {
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+}
+
+// tone: 'ok' | 'warn' | 'bad' drives the status pill colour.
+const TONES = {
+  ok: 'bg-green-100 text-green-700',
+  warn: 'bg-amber-100 text-amber-700',
+  bad: 'bg-red-100 text-red-700',
+};
+
+function StatCard({ to, icon: Icon, title, tint, value, unit, detail, status }) {
   return (
-    <Link to={to} className="block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-shadow group">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-          <Icon size={20} className="text-white" />
+    <Link to={to} className="group block bg-surface rounded-2xl border border-gray-100 shadow-card p-4 sm:p-5 hover:border-primary-200 transition-colors">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tint}`}>
+          <Icon size={19} className="text-white" />
         </div>
-        {alert && (
-          <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-            <AlertCircle size={12} /> {alert}
-          </span>
-        )}
+        <ChevronRight size={16} className="text-gray-300 group-hover:text-primary-500 transition-colors" />
       </div>
-      <p className="text-sm font-semibold text-gray-500 mb-1">{title}</p>
-      <div className="text-gray-800">{children}</div>
-      <div className="flex items-center gap-1 text-xs text-gray-400 mt-3 group-hover:text-primary-500 transition-colors">
-        Open <ArrowRight size={12} />
-      </div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <p className="text-3xl font-bold tracking-tight text-gray-900 mt-0.5">
+        {value}
+        {unit && <span className="text-base font-medium text-gray-400">{unit}</span>}
+      </p>
+      <p className="text-xs text-gray-500 mt-1 min-h-[1rem]">{detail}</p>
+      {status && (
+        <span className={`inline-block mt-3 px-2.5 py-0.5 rounded-full text-xs font-medium ${TONES[status.tone]}`}>
+          {status.label}
+        </span>
+      )}
     </Link>
   );
 }
 
+function Skeleton() {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
 export default function Dashboard() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,15 +63,6 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return (
-    <div className="p-4 sm:p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Home Manager</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Loading your home dashboard...</p>
-      </div>
-    </div>
-  );
-
   const g = data?.groceries || {};
   const b = data?.bills || {};
   const c = data?.chores || {};
@@ -55,58 +72,45 @@ export default function Dashboard() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Good day</h1>
-        <p className="text-sm text-gray-400 mt-0.5">{today}</p>
+        <p className="text-sm text-gray-500">{today}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+          {greeting()}{user ? `, ${user.name.split(' ')[0]}` : ''}
+        </h1>
       </div>
 
-      {/* Low stock alerts — shown prominently on dashboard */}
       <LowStockAlerts />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <StatCard to="/groceries" icon={ShoppingCart} title="Groceries" color="bg-green-500"
-          alert={g.itemsToBuy > 0 ? `${g.itemsToBuy} to buy` : undefined}
-        >
-          <p className="text-2xl font-bold">{g.activeLists ?? 0}</p>
-          <p className="text-sm text-gray-500">active list{(g.activeLists ?? 0) !== 1 ? 's' : ''}</p>
-        </StatCard>
-
-        <StatCard to="/bills" icon={Receipt} title="Bills" color="bg-blue-500"
-          alert={b.dueSoonCount > 0 ? `${b.dueSoonCount} due soon` : undefined}
-        >
-          {b.dueSoonCount > 0 ? (
-            <>
-              <p className="text-2xl font-bold">${b.dueSoonTotal?.toFixed(0) ?? 0}</p>
-              <p className="text-sm text-gray-500">due within 7 days</p>
-            </>
-          ) : (
-            <>
-              <p className="text-2xl font-bold text-green-600">All clear</p>
-              <p className="text-sm text-gray-500">no bills due soon</p>
-            </>
-          )}
-        </StatCard>
-
-        <StatCard to="/chores" icon={CheckSquare} title="Chores" color="bg-amber-500"
-          alert={c.overdueChores > 0 ? `${c.overdueChores} overdue` : undefined}
-        >
-          <p className="text-2xl font-bold">{c.dueToday ?? 0}</p>
-          <p className="text-sm text-gray-500">due today{c.overdueChores > 0 ? ` · ${c.overdueChores} overdue` : ''}</p>
-        </StatCard>
-
-        <StatCard to="/inventory" icon={Package} title="Inventory" color="bg-purple-500"
-          alert={inv.warrantiesExpiring > 0 ? `${inv.warrantiesExpiring} warranty expiring` : undefined}
-        >
-          <p className="text-2xl font-bold">{inv.maintenanceDue ?? 0}</p>
-          <p className="text-sm text-gray-500">maintenance due{inv.warrantiesExpiring > 0 ? ` · ${inv.warrantiesExpiring} warranty expiring` : ''}</p>
-        </StatCard>
-
-        <StatCard to="/meals" icon={UtensilsCrossed} title="Meals" color="bg-rose-500">
-          <p className="text-2xl font-bold">{m.plannedDays ?? 0}<span className="text-base font-normal text-gray-400">/{m.totalDays ?? 7}</span></p>
-          <p className="text-sm text-gray-500">days planned this week</p>
-        </StatCard>
-      </div>
+      {loading ? <Skeleton /> : (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <StatCard to="/groceries" icon={ShoppingCart} title="To buy" tint="bg-green-500"
+            value={g.itemsToBuy ?? 0} unit=" items"
+            detail={`${g.activeLists ?? 0} active list${g.activeLists === 1 ? '' : 's'}`}
+            status={g.itemsToBuy > 0 ? { tone: 'warn', label: 'Shopping needed' } : { tone: 'ok', label: 'All stocked' }}
+          />
+          <StatCard to="/bills" icon={Receipt} title="Bills due soon" tint="bg-blue-500"
+            value={`$${(b.dueSoonTotal ?? 0).toFixed(0)}`}
+            detail={b.dueSoonCount > 0 ? `${b.dueSoonCount} due within 7 days` : 'Nothing due this week'}
+            status={b.dueSoonCount > 0 ? { tone: 'warn', label: `${b.dueSoonCount} due` } : { tone: 'ok', label: 'All clear' }}
+          />
+          <StatCard to="/chores" icon={CheckSquare} title="Chores today" tint="bg-amber-500"
+            value={c.dueToday ?? 0}
+            detail={c.overdueChores > 0 ? `${c.overdueChores} overdue` : 'Nothing overdue'}
+            status={c.overdueChores > 0 ? { tone: 'bad', label: 'Overdue' } : { tone: 'ok', label: 'On track' }}
+          />
+          <StatCard to="/inventory" icon={Package} title="Maintenance due" tint="bg-purple-500"
+            value={inv.maintenanceDue ?? 0}
+            detail={inv.warrantiesExpiring > 0 ? `${inv.warrantiesExpiring} warranty expiring soon` : 'No warranties expiring'}
+            status={inv.maintenanceDue > 0 || inv.warrantiesExpiring > 0 ? { tone: 'warn', label: 'Needs attention' } : { tone: 'ok', label: 'Good' }}
+          />
+          <StatCard to="/meals" icon={UtensilsCrossed} title="Meals planned" tint="bg-rose-500"
+            value={m.plannedDays ?? 0} unit={`/${m.totalDays ?? 7} days`}
+            detail="This week"
+            status={(m.plannedDays ?? 0) < (m.totalDays ?? 7) ? { tone: 'warn', label: 'Plan the rest' } : { tone: 'ok', label: 'Fully planned' }}
+          />
+        </div>
+      )}
     </div>
   );
 }
