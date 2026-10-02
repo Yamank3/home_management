@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "NODE_ENV=production node index.js",
-    "test": "node --test utils/billCycle.test.js",
+    "test": "node --test utils/billCycle.test.js utils/reminders.test.js",
     "db:migrate": "prisma migrate dev --schema=prisma/schema.dev.prisma",
     "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio --schema=prisma/schema.dev.prisma",

@@ -138,6 +138,10 @@ export const dashboardApi = {
   getSummary: () => get('/dashboard/summary'),
 };
 
+export const remindersApi = {
+  getAll: () => get('/reminders'),
+};
+
 export const voiceApi = {
   command: (transcript) => post('/voice/command', { transcript }),
 };

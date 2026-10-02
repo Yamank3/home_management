@@ -5,6 +5,8 @@ import { dashboardApi } from '../api.js';
 import { formatMoney } from '../utils/format.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LowStockAlerts from '../components/LowStockAlerts.jsx';
+import ReminderRow from '../components/ReminderRow.jsx';
+import { useReminders } from '../context/RemindersContext.jsx';
 
 function greeting() {
   const h = new Date().getHours();
@@ -54,6 +56,9 @@ function Skeleton() {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { items: reminders, count: reminderCount, dismiss } = useReminders();
+  // Low-stock reminders already appear above, with an "Add to List" action.
+  const topReminders = reminders.filter((r) => r.type !== 'stock').slice(0, 4);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -82,6 +87,20 @@ export default function Dashboard() {
       </div>
 
       <LowStockAlerts />
+
+      {topReminders.length > 0 && (
+        <section className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-gray-700">Needs attention</h2>
+            <Link to="/reminders" className="text-xs font-medium text-primary-600 hover:underline">
+              See all ({reminderCount})
+            </Link>
+          </div>
+          <div className="bg-surface rounded-2xl border border-gray-100 shadow-card divide-y divide-gray-100">
+            {topReminders.map((r) => <ReminderRow key={r.key} reminder={r} onDismiss={dismiss} />)}
+          </div>
+        </section>
+      )}
 
       {loading ? <Skeleton /> : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

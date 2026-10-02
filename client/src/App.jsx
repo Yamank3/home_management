@@ -10,6 +10,7 @@ import GroceriesPage from './pages/groceries/GroceriesPage.jsx';
 import BillsPage from './pages/bills/BillsPage.jsx';
 import ChoresPage from './pages/chores/ChoresPage.jsx';
 import InventoryPage from './pages/inventory/InventoryPage.jsx';
+import RemindersPage from './pages/reminders/RemindersPage.jsx';
 import MealsPage from './pages/meals/MealsPage.jsx';
 import AccountPage from './pages/auth/AccountPage.jsx';
 import LoginPage from './pages/auth/LoginPage.jsx';
@@ -58,6 +59,7 @@ function AppRoutes() {
               <Route path="/chores" element={<ChoresPage />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/meals" element={<MealsPage />} />
+              <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

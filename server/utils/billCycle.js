@@ -76,4 +76,4 @@ async function resetPaidBills(prisma, householdId, today = todayStr()) {
   if (updates.length) await prisma.$transaction(updates);
 }
 
-module.exports = { shift, nextAfter, anchorFor, isRecurring, resetPaidBills, todayStr, LEAD_DAYS };
+module.exports = { shift, nextAfter, anchorFor, isRecurring, resetPaidBills, todayStr, daysUntil, LEAD_DAYS };

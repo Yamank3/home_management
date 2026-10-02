@@ -193,6 +193,169 @@ Or put the app behind a reverse proxy: **nginx + Certbot (Let's Encrypt)** if yo
 
 ---
 
+### 2. Reminders (in-app done, push next)
+
+The **Reminders** page, the "Needs attention" panel on the dashboard and the badge in the navigation show
+bills due within 3 days or overdue, chores due or overdue, maintenance due, warranties expiring within 30 days
+and low stock. They are computed on demand by `GET /api/reminders` (`server/utils/reminders.js`, tested with
+`npm test --prefix server`); dismissals are remembered per device.
+
+Still to do: **push notifications** for the Android app, reusing the same `buildReminders` list with a
+scheduler and per-device tokens (the web service worker is already wired up for Web Push).
+
+---
+
+### 3. Run the database migration
+
+```bash
+cd server
+npx prisma migrate dev --name init
+cd ..
+```
+
+This creates the SQLite database file and all tables. You only need to do this once (and again after schema changes).
+
+### 4. Start the app
+
+```bash
+npm run dev
+```
+
+- Frontend: **http://localhost:5173**
+- API: **http://localhost:3001**
+
+### 5. Create your household
+
+Open http://localhost:5173 in your browser — you'll be redirected to the registration page.
+
+Fill in:
+- **Household name** — e.g. "The Smiths"
+- **Your name** — your first name
+- **Email** and **Password** (min. 6 characters)
+
+This creates your household and makes you the **admin**.
+
+---
+
+## Adding Family Members
+
+1. Sign in as admin
+2. Go to **Account** (bottom nav or sidebar)
+3. Click **Invite Member**
+4. Fill in their name, email, and a password for them
+5. They can now sign in at the same URL with those credentials
+6. Share the invite details with them directly (in person or via message)
+
+---
+
+## Access from Your Phone
+
+```bash
+# Build and serve everything on one port
+npm start
+```
+
+1. Find your Mac's LAN IP: **System Settings → Wi-Fi → Details → IP Address**
+   (or run `ipconfig getifaddr en0` in Terminal)
+2. Open `http://<your-ip>:3001` in your phone's browser
+3. **Add to Home Screen** (iOS: share button → "Add to Home Screen" · Android: browser menu → "Add to Home Screen")
+
+The app installs as a PWA — it looks and feels like a native app.
+
+---
+
+## Database
+
+Data is stored in a single SQLite file:
+
+```
+~/home-management-data/app.db
+```
+
+### Useful commands
+
+```bash
+# Open the Prisma database browser (GUI)
+cd server && npx prisma studio
+
+# Reset the database (deletes all data)
+cd server && npx prisma migrate reset
+
+# Apply schema changes after editing schema.prisma
+cd server && npx prisma migrate dev --name describe-your-change
+```
+
+### Backup
+
+To back up your data, simply copy the database file:
+```bash
+cp ~/home-management-data/app.db ~/home-management-data/app.backup-$(date +%Y%m%d).db
+```
+
+---
+
+## Project Structure
+
+```
+home-management/
+├── server/
+│   ├── prisma/
+│   │   └── schema.prisma     # Database schema — edit here to change data models
+│   ├── middleware/
+│   │   ├── auth.js           # JWT verification
+│   │   ├── validate.js       # Zod input validation helper
+│   │   └── errorHandler.js   # Global error handler
+│   ├── routes/
+│   │   ├── auth.js           # Register, login, logout, invite
+│   │   ├── groceries.js
+│   │   ├── bills.js
+│   │   ├── chores.js
+│   │   ├── inventory.js
+│   │   ├── meals.js
+│   │   └── dashboard.js
+│   ├── db.js                 # Prisma client singleton
+│   └── index.js              # Express app entry
+└── client/
+    └── src/
+        ├── context/
+        │   └── AuthContext.jsx   # Auth state (user, household, login, logout)
+        ├── pages/
+        │   ├── auth/             # Login, Register, Account pages
+        │   ├── groceries/
+        │   ├── bills/
+        │   ├── chores/
+        │   ├── inventory/
+        │   └── meals/
+        ├── hooks/                # Per-module data hooks
+        ├── api.js                # All API calls in one place
+        └── App.jsx               # Routes + auth guards
+```
+
+---
+
+## What's Next — Production Readiness Roadmap
+
+The app works great as a local household tool. Here's what to add next, in priority order:
+
+---
+
+### 1. HTTPS (High priority if accessing from phone)
+
+PWA install on iOS and camera/microphone access require HTTPS. For LAN use:
+
+```bash
+# Install mkcert (creates locally-trusted certificates)
+brew install mkcert
+mkcert -install
+mkcert localhost 192.168.1.42   # replace with your LAN IP
+
+# Then configure Express to use the cert files
+```
+
+Or put the app behind a reverse proxy: **nginx + Certbot (Let's Encrypt)** if you expose it beyond your LAN.
+
+---
+
 ### 2. Push Notifications / Reminders
 
 The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to send reminders for:

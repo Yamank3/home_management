@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Home } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { NAV } from './nav.js';
+import { useReminders } from '../../context/RemindersContext.jsx';
 import ThemeToggle from '../ui/ThemeToggle.jsx';
 
 const linkClass = ({ isActive }) =>
@@ -11,6 +12,7 @@ const linkClass = ({ isActive }) =>
 
 export default function Sidebar() {
   const { user, household } = useAuth();
+  const { count } = useReminders();
   const items = NAV.filter((n) => n.to !== '/account');
 
   return (
@@ -28,6 +30,9 @@ export default function Sidebar() {
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} end={to === '/'} className={linkClass}>
             <Icon size={18} /> {label}
+            {to === '/reminders' && count > 0 && (
+              <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-semibold flex items-center justify-center">{count}</span>
+            )}
           </NavLink>
         ))}
       </nav>

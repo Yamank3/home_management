@@ -16,6 +16,7 @@ const inventoryRouter = require('./routes/inventory');
 const mealsRouter = require('./routes/meals');
 const dashboardRouter = require('./routes/dashboard');
 const voiceRouter = require('./routes/voice');
+const remindersRouter = require('./routes/reminders');
 
 const { lookupProduct, scaleForHousehold } = require('./data/productKnowledge');
 const { lookupRecipe, scaleRecipe }         = require('./data/recipeKnowledge');
@@ -80,6 +81,7 @@ app.use('/api/inventory', requireAuth, inventoryRouter);
 app.use('/api/meals', requireAuth, mealsRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/voice', requireAuth, voiceRouter);
+app.use('/api/reminders', requireAuth, remindersRouter);
 
 // Serve React build in production
 if (IS_PROD) {
