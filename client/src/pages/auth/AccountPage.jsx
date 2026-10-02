@@ -7,12 +7,14 @@ import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import Badge from '../../components/ui/Badge.jsx';
+import { useToast } from '../../components/ui/Toast.jsx';
 
 const EMPTY_INVITE = { name: '', email: '', password: '', role: 'member' };
 const MEMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function AccountPage() {
   const { user, household, logout, updateUser, updateHouseholdCtx } = useAuth();
+  const { toast } = useToast();
   const [members, setMembers] = useState([]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteForm, setInviteForm] = useState(EMPTY_INVITE);
@@ -53,7 +55,7 @@ export default function AccountPage() {
       await authApi.removeMember(id);
       setMembers(prev => prev.filter(m => m.id !== id));
     } catch (err) {
-      alert(err.message);
+      toast(err.message, { tone: 'error' });
     }
   };
 
@@ -78,6 +80,7 @@ export default function AccountPage() {
   };
 
   const handleSaveMemberCount = async (count) => {
+    const previous = memberCount;
     setMemberCount(count);
     setMemberCountMsg('');
     try {
@@ -85,15 +88,20 @@ export default function AccountPage() {
       updateHouseholdCtx(updated);
       setMemberCountMsg('Saved');
       setTimeout(() => setMemberCountMsg(''), 2000);
-    } catch {}
+    } catch (err) {
+      setMemberCount(previous);
+      toast(`Couldn't save household size: ${err.message}`, { tone: 'error' });
+    }
   };
+
+  const profileChanged = profileForm.name.trim() !== user.name || !!profileForm.newPassword;
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto">
       <PageHeader title="Account & Household" subtitle={household?.name} />
 
       {/* Household size */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-5">
+      <div className="bg-surface rounded-2xl border border-gray-100 shadow-card p-5 mb-5">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Users size={15} className="text-gray-400" /> Household Size
@@ -139,27 +147,27 @@ export default function AccountPage() {
       </div>
 
       {/* Profile section */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-5">
+      <div className="bg-surface rounded-2xl border border-gray-100 shadow-card p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">Your Profile</h2>
         <form onSubmit={handleUpdateProfile} className="space-y-3">
           <Input label="Name" value={profileForm.name}
             onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))} />
-          <Input label="New password (optional)" type="password" placeholder="Leave blank to keep current"
+          <Input label="New password (optional)" type="password" autoComplete="new-password" placeholder="Leave blank to keep current"
             value={profileForm.newPassword}
             onChange={e => setProfileForm(f => ({ ...f, newPassword: e.target.value }))} />
           {profileForm.newPassword && (
-            <Input label="Current password" type="password"
+            <Input label="Current password" type="password" autoComplete="current-password"
               value={profileForm.currentPassword}
               onChange={e => setProfileForm(f => ({ ...f, currentPassword: e.target.value }))} />
           )}
           {profileMsg && <p className="text-sm text-green-600">{profileMsg}</p>}
           {profileError && <p className="text-sm text-red-500">{profileError}</p>}
-          <Button type="submit" size="sm">Save changes</Button>
+          <Button type="submit" size="sm" disabled={!profileChanged}>Save changes</Button>
         </form>
       </div>
 
       {/* Members section */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-5">
+      <div className="bg-surface rounded-2xl border border-gray-100 shadow-card p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-700">Household Members</h2>
           {user?.role === 'admin' && (
@@ -170,7 +178,7 @@ export default function AccountPage() {
         </div>
         <div className="space-y-2">
           {members.map(member => (
-            <div key={member.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50">
+            <div key={member.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50">
               <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-sm shrink-0">
                 {member.name[0].toUpperCase()}
               </div>
@@ -185,9 +193,9 @@ export default function AccountPage() {
                 {member.role === 'admin' ? <><Crown size={10} className="mr-1" />Admin</> : 'Member'}
               </Badge>
               {user?.role === 'admin' && member.id !== user?.id && (
-                <button onClick={() => handleRemove(member.id)}
-                  className="p-1 text-gray-300 hover:text-red-400 transition-colors">
-                  <Trash2 size={14} />
+                <button onClick={() => handleRemove(member.id)} aria-label={`Remove ${member.name}`}
+                  className="p-2 -m-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors">
+                  <Trash2 size={15} />
                 </button>
               )}
             </div>
@@ -209,9 +217,9 @@ export default function AccountPage() {
         <div className="space-y-3">
           <Input label="Name" placeholder="e.g. Bob" value={inviteForm.name}
             onChange={e => setInviteForm(f => ({ ...f, name: e.target.value }))} autoFocus />
-          <Input label="Email" type="email" placeholder="bob@example.com" value={inviteForm.email}
+          <Input label="Email" type="email" autoComplete="off" placeholder="bob@example.com" value={inviteForm.email}
             onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))} />
-          <Input label="Password" type="password" placeholder="Min. 6 characters" value={inviteForm.password}
+          <Input label="Password" type="password" autoComplete="new-password" placeholder="Min. 6 characters" value={inviteForm.password}
             onChange={e => setInviteForm(f => ({ ...f, password: e.target.value }))} />
           <div className="flex items-center gap-3 pt-1">
             <label className="text-sm font-medium text-gray-700">Role</label>

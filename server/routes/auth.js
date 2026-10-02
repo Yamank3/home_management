@@ -174,7 +174,9 @@ router.patch('/me', requireAuth, validate(updateMeSchema), async (req, res, next
     }
 
     const updated = await prisma.user.update({ where: { id: req.user.userId }, data: updates });
-    res.json({ success: true, data: safeUser(updated) });
+    // A new password revokes every refresh token (see utils/tokens.js), so give
+    // this device fresh ones or it would be signed out when its access token expires.
+    res.json({ success: true, data: { user: safeUser(updated), ...(newPassword && issueTokens(updated)) } });
   } catch (err) { next(err); }
 });
 

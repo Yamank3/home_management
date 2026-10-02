@@ -98,7 +98,10 @@ export const authApi = {
   login: (data) => post('/auth/login', data).then(startSession),
   logout: async () => tokenStore.clear(),
   me: () => get('/auth/me'),
-  updateMe: (data) => patch('/auth/me', data),
+  updateMe: (data) => patch('/auth/me', data).then(({ user, ...tokens }) => {
+    if (tokens.accessToken) tokenStore.set(tokens);
+    return user;
+  }),
   updateHousehold: (data) => patch('/auth/household', data),
   getMembers: () => get('/auth/household/members'),
   inviteMember: (data) => post('/auth/household/invite', data),
