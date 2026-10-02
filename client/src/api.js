@@ -1,12 +1,49 @@
+import { tokenStore } from './tokenStore.js';
+
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
+export const AUTH_EXPIRED_EVENT = 'auth:expired';
+
+function send(method, path, body) {
+  const token = tokenStore.getAccess();
+  const headers = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+}
+
+// Single-flight so concurrent 401s trigger one refresh. Tokens are only discarded
+// when the server rejects the refresh token, never on a network failure.
+let refreshing = null;
+function refreshSession() {
+  refreshing ??= (async () => {
+    const refreshToken = tokenStore.getRefresh();
+    if (!refreshToken) return false;
+    const res = await fetch(`${BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (res.status === 401) {
+      tokenStore.clear();
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+      return false;
+    }
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Session refresh failed');
+    tokenStore.set(json.data);
+    return true;
+  })().finally(() => { refreshing = null; });
+  return refreshing;
+}
+
+const CREDENTIAL_PATHS = ['/auth/login', '/auth/register'];
+
 async function request(method, path, body) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res = await send(method, path, body);
+  if (res.status === 401 && !CREDENTIAL_PATHS.includes(path) && await refreshSession()) {
+    res = await send(method, path, body);
+  }
   const json = await res.json();
   if (!json.success) {
     const err = new Error(json.error || 'Request failed');
@@ -21,10 +58,16 @@ const post = (path, body) => request('POST', path, body);
 const patch = (path, body) => request('PATCH', path, body);
 const del = (path) => request('DELETE', path);
 
+// Stores the session tokens and hands callers just the user/household.
+const startSession = ({ accessToken, refreshToken, ...rest }) => {
+  tokenStore.set({ accessToken, refreshToken });
+  return rest;
+};
+
 export const authApi = {
-  register: (data) => post('/auth/register', data),
-  login: (data) => post('/auth/login', data),
-  logout: () => post('/auth/logout'),
+  register: (data) => post('/auth/register', data).then(startSession),
+  login: (data) => post('/auth/login', data).then(startSession),
+  logout: async () => tokenStore.clear(),
   me: () => get('/auth/me'),
   updateMe: (data) => patch('/auth/me', data),
   updateHousehold: (data) => patch('/auth/household', data),

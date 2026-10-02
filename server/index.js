@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const cookieParser = require('cookie-parser');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
@@ -32,6 +31,10 @@ app.use(helmet({ contentSecurityPolicy: false }));
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:4173',
+  // Capacitor WebView origins (Android: https://localhost, iOS: capacitor://localhost)
+  'https://localhost',
+  'http://localhost',
+  'capacitor://localhost',
   process.env.CLIENT_URL, // set this to your Netlify URL in production
 ].filter(Boolean);
 
@@ -42,9 +45,7 @@ app.use(cors({
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
-  credentials: true,
 }));
-app.use(cookieParser());
 app.use(express.json());
 
 // Rate limit auth endpoints

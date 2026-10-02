@@ -1,30 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { z } = require('zod');
 const prisma = require('../db');
 const { validate } = require('../middleware/validate');
 const { requireAuth } = require('../middleware/auth');
+const { issueTokens, verify, pwFingerprint } = require('../utils/tokens');
 const { seedRecipes } = require('../seed');
 
 const router = express.Router();
 
 const SALT_ROUNDS = 12;
-const COOKIE_OPTS = {
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.COOKIE_SECURE === 'true',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-};
-
-function signToken(user) {
-  return jwt.sign(
-    { userId: user.id, householdId: user.householdId, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-}
-
 function safeUser(user) {
   const { password, ...rest } = user;
   return rest;
@@ -53,8 +38,7 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
       data: { name, email, password: hashed, role: 'admin', householdId: household.id },
     });
 
-    res.cookie('token', signToken(user), COOKIE_OPTS);
-    res.json({ success: true, data: { user: safeUser(user), household } });
+    res.json({ success: true, data: { user: safeUser(user), household, ...issueTokens(user) } });
 
     // Seed default recipes for the new household (fire and forget)
     seedRecipes(prisma, household.id).catch(() => {});
@@ -76,15 +60,29 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ success: false, error: 'Invalid email or password' });
 
-    res.cookie('token', signToken(user), COOKIE_OPTS);
-    res.json({ success: true, data: { user: safeUser(user), household: user.household } });
+    res.json({ success: true, data: { user: safeUser(user), household: user.household, ...issueTokens(user) } });
   } catch (err) { next(err); }
 });
 
-// POST /api/auth/logout
-router.post('/logout', (req, res) => {
-  res.clearCookie('token');
-  res.json({ success: true, data: null });
+// POST /api/auth/refresh — exchange a refresh token for a fresh pair (rotating).
+// Logout is client-side: discard both tokens. Changing the password invalidates
+// all refresh tokens (see pwFingerprint).
+const refreshSchema = z.object({ refreshToken: z.string().min(1) });
+
+router.post('/refresh', validate(refreshSchema), async (req, res, next) => {
+  try {
+    let payload;
+    try {
+      payload = verify(req.body.refreshToken, 'refresh');
+    } catch {
+      return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+    }
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user || pwFingerprint(user) !== payload.pw) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+    }
+    res.json({ success: true, data: issueTokens(user) });
+  } catch (err) { next(err); }
 });
 
 // GET /api/auth/me — return current user + household

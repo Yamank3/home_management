@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api.js';
+import { authApi, AUTH_EXPIRED_EVENT } from '../api.js';
+import { tokenStore } from '../tokenStore.js';
 
 export const AuthContext = createContext(null);
 
@@ -15,6 +16,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const onExpired = () => { setUser(null); setHousehold(null); };
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
+  }, []);
+
+  useEffect(() => {
+    if (!tokenStore.hasSession()) { setLoading(false); return; }
     authApi.me()
       .then(({ user, household }) => { setUser(user); setHousehold(household); })
       .catch(() => { setUser(null); setHousehold(null); })

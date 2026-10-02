@@ -38,7 +38,6 @@ DATABASE_URL=file:/Users/YOUR_USERNAME/home-management-data/app.db
 
 PORT=3001
 NODE_ENV=development
-COOKIE_SECURE=false
 ```
 
 > **Tip:** Generate a strong secret with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
@@ -179,7 +178,7 @@ The app works great as a local household tool. Here's what to add next, in prior
 
 ### 1. HTTPS (High priority if accessing from phone)
 
-httpOnly cookies and PWA install on iOS both require HTTPS. For LAN use:
+PWA install on iOS and camera/microphone access require HTTPS. For LAN use:
 
 ```bash
 # Install mkcert (creates locally-trusted certificates)
@@ -308,4 +307,3 @@ With a `docker-compose.yml` + nginx reverse proxy, you can access your home mana
 | `DATABASE_URL` | Yes | — | SQLite path: `file:/path/to/app.db` |
 | `PORT` | No | `3001` | Server port |
 | `NODE_ENV` | No | `development` | Set to `production` for prod build |
-| `COOKIE_SECURE` | No | `false` | Set to `true` when running behind HTTPS |
