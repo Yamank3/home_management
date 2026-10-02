@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../db');
+const { containsText } = require('../utils/dbSearch');
 const { lookupProduct } = require('../data/productKnowledge');
 const { lookupRecipe } = require('../data/recipeKnowledge');
 
@@ -273,7 +274,7 @@ router.post('/command', async (req, res, next) => {
 
       // Find or create a meal in the library
       let meal = await prisma.meal.findFirst({
-        where: { householdId: req.householdId, name: { contains: entity } },
+        where: { householdId: req.householdId, name: containsText(entity) },
       });
       if (!meal && recipe) {
         meal = await prisma.meal.create({

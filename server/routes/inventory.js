@@ -2,6 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../db');
 const { validate } = require('../middleware/validate');
+const { containsText } = require('../utils/dbSearch');
 
 const router = express.Router();
 
@@ -13,9 +14,9 @@ router.get('/', async (req, res, next) => {
     if (req.query.search) {
       const q = req.query.search.toLowerCase();
       where.OR = [
-        { name: { contains: q } },
-        { brand: { contains: q } },
-        { location: { contains: q } },
+        { name: containsText(q) },
+        { brand: containsText(q) },
+        { location: containsText(q) },
       ];
     }
     const items = await prisma.inventoryItem.findMany({

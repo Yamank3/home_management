@@ -2,6 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../db');
 const { validate } = require('../middleware/validate');
+const { containsText } = require('../utils/dbSearch');
 const { lookupRecipe, scaleRecipe, RECIPES } = require('../data/recipeKnowledge');
 const { lookupProduct } = require('../data/productKnowledge');
 const { importRecipeFromUrl } = require('../utils/recipeImporter');
@@ -18,7 +19,7 @@ async function resolveStapleQty(name, householdId) {
     if (staple.pattern.test(name)) {
       // Check if it's already in inventory
       const inInv = await prisma.inventoryItem.findFirst({
-        where: { householdId, fromGrocery: true, name: { contains: 'salt' } },
+        where: { householdId, fromGrocery: true, name: containsText('salt') },
       });
       if (!inInv) {
         return { quantity: staple.qty, category: staple.category, shelfLifeDays: staple.shelfLifeDays };
@@ -89,7 +90,7 @@ router.get('/search', async (req, res, next) => {
     const library = await prisma.meal.findMany({
       where: {
         householdId: req.householdId,
-        name: { contains: q },
+        name: containsText(q),
       },
       take: 6,
     });
