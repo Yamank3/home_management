@@ -1,3 +1,4 @@
+import BarcodeScanButton from '../../components/BarcodeScanButton.jsx';
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, ShoppingBag, Loader2, Check, Pencil, RotateCcw } from 'lucide-react';
 import { useGroceries } from '../../hooks/useGroceries.js';
@@ -120,6 +121,7 @@ export default function GroceriesPage() {
   const [editing, setEditing]       = useState(false);
   const [fields, setFields]         = useState(DEFAULT_FIELDS);
   const debounceRef                 = useRef(null);
+  const scanned                     = useRef(null); // product details from the last barcode scan
 
   // Debounced auto-lookup as user types
   useEffect(() => {
@@ -132,10 +134,14 @@ export default function GroceriesPage() {
       try {
         const match = await groceryApi.lookup(name, memberCount);
         setSuggestion(match);
-        setFields(match
+        const base = match
           ? { category: match.category, quantity: match.quantity || '', note: '', monthlyFrequency: match.monthlyFrequency ?? null, shelfLifeDays: match.shelfLifeDays ?? null }
-          : DEFAULT_FIELDS
-        );
+          : DEFAULT_FIELDS;
+        // A scanned barcode knows the real pack size; its category is used when our own list doesn't know the item.
+        const hint = scanned.current?.name === name ? scanned.current : null;
+        setFields(hint
+          ? { ...base, quantity: hint.quantity || base.quantity, category: match ? base.category : (hint.category ?? base.category) }
+          : base);
       } catch {}
       setLooking(false);
     }, 350);
@@ -290,6 +296,7 @@ export default function GroceriesPage() {
               <Loader2 size={14} className="absolute right-3 top-9 text-gray-400 animate-spin" />
             )}
           </div>
+          <BarcodeScanButton onProduct={(p) => { scanned.current = p; setItemName(p.name); }} />
 
           {/* Auto-fill preview */}
           {itemName.trim() && !looking && (

@@ -188,6 +188,7 @@ export const groceryApi = {
   getLists: () => get('/groceries/lists'),
   createList: (name, focusGroups = []) => post('/groceries/lists', { name, focusGroups }),
   deleteList: (id) => del(`/groceries/lists/${id}`),
+  lookupBarcode: (code) => get(`/products/barcode/${code}`),
   lookup: (name, members) => get(`/groceries/lookup?name=${encodeURIComponent(name)}${members ? `&members=${members}` : ''}`),
   getItems: (listId) => get(`/groceries/items${listId ? `?listId=${listId}` : ''}`),
   addItem: (data) => post('/groceries/items', data),
