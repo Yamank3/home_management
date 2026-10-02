@@ -4,6 +4,7 @@ import { usePayments } from '../../hooks/usePayments.js';
 import { formatMoney as fmt } from '../../utils/format.js';
 import MonthNav from '../../components/MonthNav.jsx';
 import ExpenseModal from '../../components/ExpenseModal.jsx';
+import ReceiptScanButton from '../../components/ReceiptScanButton.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
@@ -15,6 +16,7 @@ const dayLabel = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-US'
 export default function HistoryTab({ month, onMonthChange }) {
   const { payments, summary, loading, addExpense, removePayment } = usePayments(month);
   const [adding, setAdding] = useState(false);
+  const [receipt, setReceipt] = useState(null); // details read from a scanned receipt
 
   // Adding an expense dated in another month jumps to that month so it's visible.
   const save = async (data) => {
@@ -27,12 +29,15 @@ export default function HistoryTab({ month, onMonthChange }) {
   return (
     <>
       <MonthNav month={month} onChange={onMonthChange} />
-      <div className="flex items-center justify-between mb-4 gap-3">
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
         <div>
           <p className="text-xs text-gray-400">Spent</p>
           <p className="text-2xl font-bold tracking-tight text-gray-900">{fmt(summary?.total ?? 0)}</p>
         </div>
-        <Button size="sm" onClick={() => setAdding(true)}><Plus size={15} /> Add expense</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ReceiptScanButton onParsed={setReceipt} />
+          <Button size="sm" onClick={() => setAdding(true)}><Plus size={15} /> Add expense</Button>
+        </div>
       </div>
 
       {loading ? (
@@ -71,6 +76,7 @@ export default function HistoryTab({ month, onMonthChange }) {
       )}
 
       <ExpenseModal open={adding} onClose={() => setAdding(false)} onSave={save} />
+      <ExpenseModal open={!!receipt} onClose={() => setReceipt(null)} onSave={save} initial={receipt} source="receipt" title="Review receipt" />
     </>
   );
 }

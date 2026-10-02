@@ -24,6 +24,12 @@
 
         </activity>
 
+        <!-- Let Google Play download the on-device models (receipt text, barcode scanner)
+             with the app instead of on first use. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr,barcode_ui" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -12,13 +12,16 @@
     "android:open": "cap open android",
     "android:apk": "npm run build:android && cd android && ./gradlew assembleDebug",
     "android:local": "vite build --mode android-local && cap sync android && node scripts/patch-android-local.mjs",
-    "test": "node --test src/offline/offline.test.js src/notifications/plan.test.js"
+    "test": "node --test src/offline/offline.test.js src/notifications/plan.test.js src/receipts/parse.test.js"
   },
   "dependencies": {
+    "@capacitor-community/speech-recognition": "^7.0.1",
     "@capacitor-mlkit/barcode-scanning": "^8.2.1",
     "@capacitor/android": "^8.5.2",
+    "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/local-notifications": "^8.3.1",
+    "@pantrist/capacitor-plugin-ml-kit-text-recognition": "^8.1.1",
     "lucide-react": "^0.441.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

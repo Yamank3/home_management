@@ -2,21 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, X, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { voiceApi } from '../api.js';
 import { useNavigate } from 'react-router-dom';
-
-// Check browser support
-const SpeechRecognition =
-  typeof window !== 'undefined' &&
-  (window.SpeechRecognition || window.webkitSpeechRecognition);
+import { speechSupported, listenOnce, stopListening as cancelSpeech } from '../voice/speech.js';
 
 const DISMISS_MS = 4000;
 
 export default function VoiceCommand() {
   const navigate = useNavigate();
+  const [supported, setSupported] = useState(false);
   const [state, setState]         = useState('idle');   // idle | listening | processing | success | error
   const [transcript, setTranscript] = useState('');
   const [message, setMessage]     = useState('');
-  const recogRef  = useRef(null);
   const timerRef  = useRef(null);
+
+  useEffect(() => { speechSupported().then(setSupported); }, []);
 
   // Auto-dismiss result after DISMISS_MS
   useEffect(() => {
@@ -26,61 +24,42 @@ export default function VoiceCommand() {
     return () => clearTimeout(timerRef.current);
   }, [state]);
 
-  if (!SpeechRecognition) return null; // hide button if unsupported
+  if (!supported) return null; // hide button if the device can't recognise speech
 
-  const startListening = () => {
+  const startListening = async () => {
     if (state !== 'idle') { stopListening(); return; }
 
-    const recog = new SpeechRecognition();
-    recog.lang = 'en-IN';             // prioritise Indian English + Hindi words
-    recog.interimResults = false;
-    recog.maxAlternatives = 1;
-    recog.continuous = false;
-
-    recog.onstart = () => setState('listening');
-
-    recog.onresult = async (e) => {
-      const text = e.results[0][0].transcript;
-      setTranscript(text);
-      setState('processing');
-
-      try {
-        const result = await voiceApi.command(text);
-        setMessage(result.message || 'Done ✓');
-
-        // Handle navigation intent
-        if (result.intent === 'meal.suggest' && result.navigate) {
-          navigate(result.navigate);
-        }
-
-        setState(result.intent === 'unknown' ? 'error' : 'success');
-      } catch (err) {
-        setMessage(err.message || 'Something went wrong');
-        setState('error');
-      }
-    };
-
-    recog.onerror = (e) => {
-      if (e.error === 'not-allowed') {
-        setMessage('Microphone permission denied. Please allow microphone access.');
-      } else if (e.error === 'no-speech') {
-        setMessage("Didn't hear anything. Tap the mic and speak.");
-      } else {
-        setMessage(`Microphone error: ${e.error}`);
-      }
+    setState('listening');
+    let text;
+    try {
+      text = await listenOnce();
+    } catch (e) {
+      if (e.code === 'aborted') { setState('idle'); return; } // user stopped it
+      setMessage(e.message);
       setState('error');
-    };
+      return;
+    }
 
-    recog.onend = () => {
-      if (state === 'listening') setState('idle');
-    };
+    setTranscript(text);
+    setState('processing');
+    try {
+      const result = await voiceApi.command(text);
+      setMessage(result.message || 'Done ✓');
 
-    recogRef.current = recog;
-    recog.start();
+      // Handle navigation intent
+      if (result.intent === 'meal.suggest' && result.navigate) {
+        navigate(result.navigate);
+      }
+
+      setState(result.intent === 'unknown' ? 'error' : 'success');
+    } catch (err) {
+      setMessage(err.message || 'Something went wrong');
+      setState('error');
+    }
   };
 
   const stopListening = () => {
-    recogRef.current?.stop();
+    cancelSpeech();
     setState('idle');
     setTranscript('');
     setMessage('');

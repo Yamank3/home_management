@@ -367,6 +367,28 @@ The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to 
 
 ---
 
+### Barcode Scanning (done)
+
+**Scan barcode** in the grocery Add Item dialog reads a product barcode and fills in the name, pack size and
+category from Open Food Facts (free, no key; only the barcode number is sent, via `GET /api/products/barcode/:code`).
+On Android it uses Google's scanner screen (no camera permission; the scanner module downloads once if missing). In
+a browser it uses the camera where `BarcodeDetector` exists (Chrome/Edge) and always lets you type the number.
+
+### Receipt Scanning (Android, done)
+
+**Scan receipt** in Bills → History takes a photo (or picks one), reads the text on the phone with Google ML Kit
+(the image never leaves the device), and proposes merchant, date, total and category in an expense form you review
+before saving. Parsing is in `client/src/receipts/parse.js` (tested). It copes with day-first dates, "Net payable"
+vs subtotal and tax lines, Indian digit grouping and labels split from their figures, but it is a heuristic: always
+check the amount. Only the fields are stored, not the photo.
+
+### Voice in the Android App (done)
+
+The mic button uses Android's speech recogniser inside the app (`client/src/voice/speech.js`) and the browser's
+elsewhere. Android asks for microphone permission on first use; recognition itself usually needs a connection.
+
+---
+
 ### Payment History and Budgets (done)
 
 On the Bills page, **History** lists every payment by month and **Budgets** sets a monthly limit per category and
