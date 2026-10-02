@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef } from 'react';
 import { streamEvents, CLIENT_ID, SYNC_FLUSHED_EVENT } from '../api.js';
 
 // Areas of data a screen can depend on; matches the server's utils/realtime.js.
-export const ALL_MODULES = ['groceries', 'inventory', 'bills', 'chores', 'meals'];
+export const ALL_MODULES = ['groceries', 'inventory', 'bills', 'chores', 'meals', 'payments', 'budgets'];
 
 const LiveSyncContext = createContext(null);
 

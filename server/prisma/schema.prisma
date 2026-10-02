@@ -25,6 +25,8 @@ model Household {
   inventory       InventoryItem[]
   meals           Meal[]
   mealPlanEntries MealPlanEntry[]
+  payments        Payment[]
+  budgets         Budget[]
 }
 
 model User {
@@ -80,6 +82,7 @@ model Bill {
   notes       String    @default("")
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  payments    Payment[]
   createdAt   DateTime  @default(now())
 }
 
@@ -166,4 +169,36 @@ model MealPlanEntry {
   createdAt     DateTime  @default(now())
 
   @@unique([date, householdId])
+}
+
+// A payment actually made: either a bill being paid (billId set) or a one-off
+// expense, entered by hand or read from a receipt. History and budgets use these.
+model Payment {
+  id          String    @id @default(uuid())
+  billId      String?
+  bill        Bill?     @relation(fields: [billId], references: [id], onDelete: SetNull)
+  name        String
+  category    String    @default("other")
+  amount      Float
+  currency    String    @default("INR")
+  paidOn      String
+  dueDate     String?
+  source      String    @default("bill")
+  note        String    @default("")
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@index([householdId, paidOn])
+}
+
+// Monthly spending limit for one category.
+model Budget {
+  id            String    @id @default(uuid())
+  category      String
+  monthlyAmount Float
+  householdId   String
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, category])
 }

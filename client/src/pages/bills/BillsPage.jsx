@@ -9,6 +9,9 @@ import EmptyState from '../../components/ui/EmptyState.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
+import HistoryTab from './HistoryTab.jsx';
+import BudgetsTab from './BudgetsTab.jsx';
+import { currentMonth } from '../../utils/format.js';
 
 const CATEGORIES = ['utilities', 'insurance', 'subscriptions', 'rent/mortgage', 'loans', 'other'];
 const FREQUENCIES = ['monthly', 'weekly', 'biweekly', 'quarterly', 'annual', 'one-time'];
@@ -33,6 +36,8 @@ export default function BillsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
+  const [tab, setTab] = useState('bills');
+  const [month, setMonth] = useState(currentMonth);
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.amount) return;
@@ -69,9 +74,22 @@ export default function BillsPage() {
       <PageHeader
         title="Bills & Expenses"
         subtitle={summary ? `~${fmt(summary.total)} / month` : undefined}
-        action={<Button size="sm" onClick={() => { setForm(EMPTY_FORM); setEditId(null); setShowAdd(true); }}><Plus size={15} /> Add Bill</Button>}
+        action={tab === 'bills' && <Button size="sm" onClick={() => { setForm(EMPTY_FORM); setEditId(null); setShowAdd(true); }}><Plus size={15} /> Add Bill</Button>}
       />
 
+      <div role="tablist" className="flex p-1 mb-5 bg-gray-100 rounded-xl">
+        {[['bills', 'Bills'], ['history', 'History'], ['budgets', 'Budgets']].map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+            className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors ${tab === id ? 'bg-surface text-gray-900 shadow-card' : 'text-gray-500 hover:text-gray-700'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'history' && <HistoryTab month={month} onMonthChange={setMonth} />}
+      {tab === 'budgets' && <BudgetsTab month={month} onMonthChange={setMonth} />}
+
+      {tab === 'bills' && <>
       {/* Monthly summary */}
       {summary && Object.keys(summary.byCategory).length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6">
@@ -124,6 +142,8 @@ export default function BillsPage() {
           )}
         </>
       )}
+
+      </>}
 
       <Modal open={showAdd} onClose={() => { setShowAdd(false); setEditId(null); }} title={editId ? 'Edit Bill' : 'Add Bill'}
         footer={<>

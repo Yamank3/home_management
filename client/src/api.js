@@ -204,6 +204,18 @@ export const billsApi = {
   getMonthlySummary: () => get('/bills/summary/monthly'),
 };
 
+export const paymentsApi = {
+  list: (month) => get(`/payments?month=${month}`),
+  summary: (month) => get(`/payments/summary?month=${month}`),
+  create: (data) => post('/payments', data),
+  remove: (id) => del(`/payments/${id}`),
+};
+
+export const budgetsApi = {
+  list: () => get('/budgets'),
+  set: (category, monthlyAmount) => request('PUT', '/budgets', { category, monthlyAmount }),
+};
+
 export const choresApi = {
   getAll: () => get('/chores'),
   create: (data) => post('/chores', data),

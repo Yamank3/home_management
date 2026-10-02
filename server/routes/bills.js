@@ -43,6 +43,9 @@ router.post('/', validate(billSchema), async (req, res, next) => {
 
 const billUpdateSchema = billSchema.partial().extend({
   isPaid: z.boolean().optional(),
+  // The day it was actually paid; the app sends it so a payment made offline is
+  // dated when it happened, not when it later syncs.
+  paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 router.patch('/:id', validate(billUpdateSchema), async (req, res, next) => {
@@ -52,7 +55,7 @@ router.patch('/:id', validate(billUpdateSchema), async (req, res, next) => {
     });
     if (!existing) return res.status(404).json({ success: false, error: 'Bill not found' });
 
-    const data = { ...req.body };
+    const { paidOn, ...data } = req.body;
     const recurring = isRecurring(data.frequency ?? existing.frequency);
 
     // Paying a recurring bill moves it to its next cycle; un-paying (an undo)
@@ -75,7 +78,23 @@ router.patch('/:id', validate(billUpdateSchema), async (req, res, next) => {
       data.dueDay = anchorFor(data.frequency ?? existing.frequency, data.nextDueDate);
     }
 
-    const bill = await prisma.bill.update({ where: { id: req.params.id }, data });
+    // History: paying records a payment, un-paying (an undo) removes the latest one.
+    const bill = await prisma.$transaction(async (tx) => {
+      const updated = await tx.bill.update({ where: { id: req.params.id }, data });
+      if (data.isPaid === true && !existing.isPaid) {
+        await tx.payment.create({
+          data: {
+            billId: existing.id, name: existing.name, category: existing.category, amount: existing.amount,
+            currency: existing.currency, paidOn: paidOn ?? todayStr(), dueDate: existing.nextDueDate,
+            source: 'bill', householdId: req.householdId,
+          },
+        });
+      } else if (data.isPaid === false && existing.isPaid) {
+        const last = await tx.payment.findFirst({ where: { billId: existing.id, source: 'bill' }, orderBy: { createdAt: 'desc' } });
+        if (last) await tx.payment.delete({ where: { id: last.id } });
+      }
+      return updated;
+    });
     res.json({ success: true, data: bill });
   } catch (err) { next(err); }
 });

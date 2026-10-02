@@ -6,10 +6,12 @@
 const AFFECTS = {
   groceries: ['groceries', 'inventory'],
   inventory: ['inventory'],
-  bills: ['bills'],
+  bills: ['bills', 'payments'],
+  payments: ['payments'],
+  budgets: ['budgets'],
   chores: ['chores'],
   meals: ['meals', 'groceries', 'inventory'],
-  voice: ['groceries', 'inventory', 'bills', 'chores', 'meals'],
+  voice: ['groceries', 'inventory', 'bills', 'chores', 'meals', 'payments'],
 };
 
 const streams = new Map(); // householdId -> Set<res>

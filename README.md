@@ -367,6 +367,34 @@ The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to 
 
 ---
 
+### Payment History and Budgets (done)
+
+On the Bills page, **History** lists every payment by month and **Budgets** sets a monthly limit per category and
+shows spending against it (green, amber from 80%, red when over). Paying a bill records a payment automatically
+(un-paying removes it; deleting a bill keeps its history); other spending is added with **Add expense**. Logic:
+`server/utils/spending.js`, routes `payments.js` and `budgets.js`.
+
+### Database Migrations (Postgres)
+
+Production (Railway) uses Postgres and applies `server/prisma/migrations` on start (`prisma migrate deploy`).
+Local development uses SQLite with `prisma db push`, so after editing the schema keep **both** `schema.prisma`
+(Postgres) and `schema.dev.prisma` (SQLite) in step, then add a Postgres migration without needing a database:
+
+```bash
+cd server
+git show HEAD:server/prisma/schema.prisma > /tmp/old.prisma      # the schema before your edit
+mkdir prisma/migrations/$(date +%Y%m%d%H%M%S)_describe_change
+npx prisma migrate diff --from-schema-datamodel /tmp/old.prisma \
+  --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/<that folder>/migration.sql
+```
+
+`0_init` is deliberately idempotent: it works on an empty database and on one that already has the tables (it only
+adds what is missing), which is how the existing Railway database was adopted. This was tested on a real Postgres
+18 for four cases: empty, existing with data and an unknown earlier migration, drifted (missing columns), and a
+re-run.
+
+---
+
 ### Offline Use (done)
 
 The app opens and works without a connection. Every successful read is saved per user (`client/src/offline`), so

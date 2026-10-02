@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { billsApi } from '../api.js';
 import { useUndoableRemove } from './useUndoableRemove.js';
+import { localDate } from '../utils/format.js';
 import { useLiveSync } from '../context/LiveSyncContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 
@@ -45,7 +46,7 @@ export function useBills() {
   });
 
   const markPaid = async (id, isPaid) => {
-    const updated = await billsApi.update(id, { isPaid });
+    const updated = await billsApi.update(id, isPaid ? { isPaid, paidOn: localDate() } : { isPaid });
     setBills(prev => prev.map(b => b.id === id ? updated : b));
     if (isPaid) {
       const next = updated.frequency !== 'one-time' && updated.nextDueDate;

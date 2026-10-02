@@ -18,6 +18,8 @@ const dashboardRouter = require('./routes/dashboard');
 const voiceRouter = require('./routes/voice');
 const remindersRouter = require('./routes/reminders');
 const eventsRouter = require('./routes/events');
+const paymentsRouter = require('./routes/payments');
+const budgetsRouter = require('./routes/budgets');
 const { announceWrites } = require('./utils/realtime');
 
 const { lookupProduct, scaleForHousehold } = require('./data/productKnowledge');
@@ -88,6 +90,8 @@ app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/voice', requireAuth, voiceRouter);
 app.use('/api/reminders', requireAuth, remindersRouter);
 app.use('/api/events', requireAuth, eventsRouter);
+app.use('/api/payments', requireAuth, paymentsRouter);
+app.use('/api/budgets', requireAuth, budgetsRouter);
 
 // Serve React build in production
 if (IS_PROD) {
