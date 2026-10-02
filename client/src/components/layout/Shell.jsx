@@ -1,10 +1,12 @@
 import Sidebar from './Sidebar.jsx';
 import BottomNav from './BottomNav.jsx';
 import VoiceCommand from '../VoiceCommand.jsx';
+import { LiveSyncProvider } from '../../context/LiveSyncContext.jsx';
 import { RemindersProvider } from '../../context/RemindersContext.jsx';
 
 export default function Shell({ children }) {
   return (
+    <LiveSyncProvider>
     <RemindersProvider>
       <div className="flex min-h-screen">
         <Sidebar />
@@ -15,5 +17,6 @@ export default function Shell({ children }) {
         <VoiceCommand />
       </div>
     </RemindersProvider>
+    </LiveSyncProvider>
   );
 }

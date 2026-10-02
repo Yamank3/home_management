@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Receipt, CheckSquare, Package, UtensilsCrossed, ChevronRight } from 'lucide-react';
 import { dashboardApi } from '../api.js';
@@ -6,6 +6,7 @@ import { formatMoney } from '../utils/format.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LowStockAlerts from '../components/LowStockAlerts.jsx';
 import ReminderRow from '../components/ReminderRow.jsx';
+import { useLiveSync, ALL_MODULES } from '../context/LiveSyncContext.jsx';
 import { useReminders } from '../context/RemindersContext.jsx';
 
 function greeting() {
@@ -62,12 +63,10 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    dashboardApi.getSummary()
-      .then(setData)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const load = useCallback(() => dashboardApi.getSummary().then(setData).catch(() => {}), []);
+
+  useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
+  useLiveSync(ALL_MODULES, load);
 
   const g = data?.groceries || {};
   const b = data?.bills || {};

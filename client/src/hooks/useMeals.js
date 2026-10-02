@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { mealsApi } from '../api.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 
 function getMonday(date = new Date()) {
   const d = new Date(date);
@@ -34,6 +35,8 @@ export function useMeals() {
   useEffect(() => {
     fetchPlan(weekStart);
   }, [weekStart, fetchPlan]);
+
+  useLiveSync(['meals'], () => Promise.all([fetchMeals(), fetchPlan(weekStart)]).catch(() => {}));
 
   const createMeal = async (data) => {
     const meal = await mealsApi.create(data);

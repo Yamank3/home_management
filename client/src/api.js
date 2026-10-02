@@ -4,12 +4,15 @@ const BASE = import.meta.env.VITE_API_URL || '/api';
 
 export const AUTH_EXPIRED_EVENT = 'auth:expired';
 
-function send(method, path, body) {
+// Identifies this tab/app instance so live sync can skip echoing our own writes.
+export const CLIENT_ID = Math.random().toString(36).slice(2);
+
+function send(method, path, body, signal) {
   const token = tokenStore.getAccess();
-  const headers = {};
+  const headers = { 'X-Client-Id': CLIENT_ID };
   if (body) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
-  return fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  return fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined, signal });
 }
 
 // Single-flight so concurrent 401s trigger one refresh. Tokens are only discarded
@@ -51,6 +54,32 @@ async function request(method, path, body) {
     throw err;
   }
   return json.data;
+}
+
+// Reads the household event stream (Server-Sent Events over fetch, since
+// EventSource can't send the Authorization header). Resolves when the server
+// closes the stream; rejects on failure. onOpen fires once connected.
+export async function streamEvents({ onOpen, onEvent, signal }) {
+  let res = await send('GET', '/events', null, signal);
+  if (res.status === 401 && await refreshSession()) res = await send('GET', '/events', null, signal);
+  if (!res.ok || !res.body) throw new Error(`Event stream failed (${res.status})`);
+  onOpen?.();
+
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return;
+    buffer += value;
+    let end;
+    while ((end = buffer.indexOf('\n\n')) >= 0) {
+      const frame = buffer.slice(0, end);
+      buffer = buffer.slice(end + 2);
+      const name = /^event: (.+)$/m.exec(frame)?.[1];
+      const data = /^data: (.+)$/m.exec(frame)?.[1];
+      if (name && data) onEvent({ name, data: JSON.parse(data) });
+    }
+  }
 }
 
 const get = (path) => request('GET', path);

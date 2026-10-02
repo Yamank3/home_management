@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, X, ShoppingCart } from 'lucide-react';
 import { inventoryApi, groceryApi } from '../api.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 
 const sessionDismissed = new Set();
 
@@ -9,22 +10,20 @@ export default function LowStockAlerts({ onReAdded }) {
   const [dismissed, setDismissed] = useState(new Set(sessionDismissed));
   const [adding, setAdding]       = useState(new Set());
 
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getAll({ fromGrocery: 'true' })
+  const load = useCallback(() => {
+    return inventoryApi.getAll({ fromGrocery: 'true' })
       .then(items => {
-        if (cancelled) return;
-        const today = new Date().toISOString().split('T')[0];
-        const in7   = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
         setAlerts(items.filter(i =>
           i.estimatedEndDate &&
-          i.estimatedEndDate <= in7 &&
+          i.estimatedEndDate <= new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0] &&
           !sessionDismissed.has(i.id)
         ));
       })
       .catch(() => {});
-    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useLiveSync(['inventory'], load);
 
   const visible = alerts.filter(a => !dismissed.has(a.id));
   if (visible.length === 0) return null;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { billsApi } from '../api.js';
 import { useUndoableRemove } from './useUndoableRemove.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 
 export function useBills() {
@@ -13,7 +14,7 @@ export function useBills() {
   const fetchAll = async () => {
     try {
       const [data, sum] = await Promise.all([billsApi.getAll(), billsApi.getMonthlySummary()]);
-      setBills(data);
+      setBills(remove.withoutPending(data));
       setSummary(sum);
     } catch (e) {
       setError(e.message);
@@ -24,6 +25,8 @@ export function useBills() {
     setLoading(true);
     fetchAll().finally(() => setLoading(false));
   }, []);
+
+  useLiveSync(['bills'], fetchAll);
 
   const create = async (data) => {
     const bill = await billsApi.create(data);

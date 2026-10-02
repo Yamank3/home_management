@@ -367,6 +367,20 @@ The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to 
 
 ---
 
+### Live Sync (done)
+
+When anyone in the household changes something, everyone else's open screen updates by itself. The server keeps
+one Server-Sent Events stream per signed-in device (`GET /api/events`, `server/utils/realtime.js`) and announces
+which areas changed; screens refetch through `useLiveSync` (`client/src/context/LiveSyncContext.jsx`). The
+sender's own device skips its own change, the client reconnects with backoff, and a 60-second refetch is a safety
+net if a proxy buffers the stream.
+
+Notes: the hub is in memory, so run a single server instance (scaling out needs a shared bus such as Redis). If you
+serve the web app through the Netlify `/api` proxy, long-lived streams may be cut off; the fallback keeps screens
+fresh, but pointing `VITE_API_URL` straight at the server gives true instant updates.
+
+---
+
 ### 3. Recurring Bills (done)
 
 Paying a recurring bill moves it to its next due date and shows it as "Paid" until that date is close

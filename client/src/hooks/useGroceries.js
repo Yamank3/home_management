@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { groceryApi } from '../api.js';
 import { useUndoableRemove } from './useUndoableRemove.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 
 export function useGroceries() {
   const [lists, setLists] = useState([]);
@@ -13,7 +14,7 @@ export function useGroceries() {
     if (!listId) return;
     try {
       const data = await groceryApi.getItems(listId);
-      setItems(data);
+      setItems(removeItem.withoutPending(data));
     } catch (e) { setError(e.message); }
   }, []);
 
@@ -31,6 +32,20 @@ export function useGroceries() {
   useEffect(() => {
     if (activeListId) fetchItems(activeListId);
   }, [activeListId, fetchItems]);
+
+  useLiveSync(['groceries'], async () => {
+    try {
+      const data = await groceryApi.getLists();
+      setLists(data);
+      // Someone may have deleted the list we're viewing.
+      if (!data.some(l => l.id === activeListId)) {
+        setActiveListId(data[0]?.id ?? null);
+        if (!data.length) setItems([]);
+      } else {
+        fetchItems(activeListId);
+      }
+    } catch (e) { setError(e.message); }
+  });
 
   const createList = async (name, focusGroups = []) => {
     const list = await groceryApi.createList(name, focusGroups);

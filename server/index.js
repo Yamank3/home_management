@@ -17,6 +17,8 @@ const mealsRouter = require('./routes/meals');
 const dashboardRouter = require('./routes/dashboard');
 const voiceRouter = require('./routes/voice');
 const remindersRouter = require('./routes/reminders');
+const eventsRouter = require('./routes/events');
+const { announceWrites } = require('./utils/realtime');
 
 const { lookupProduct, scaleForHousehold } = require('./data/productKnowledge');
 const { lookupRecipe, scaleRecipe }         = require('./data/recipeKnowledge');
@@ -73,6 +75,9 @@ app.get('/api/meals/recipe', (req, res) => {
 app.use(['/api/auth/login', '/api/auth/register'], authLimiter);
 app.use('/api/auth', authRouter);
 
+// Announce successful writes to the rest of the household (see utils/realtime.js)
+app.use('/api', announceWrites);
+
 // All other API routes require authentication
 app.use('/api/groceries', requireAuth, groceriesRouter);
 app.use('/api/bills', requireAuth, billsRouter);
@@ -82,6 +87,7 @@ app.use('/api/meals', requireAuth, mealsRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/voice', requireAuth, voiceRouter);
 app.use('/api/reminders', requireAuth, remindersRouter);
+app.use('/api/events', requireAuth, eventsRouter);
 
 // Serve React build in production
 if (IS_PROD) {

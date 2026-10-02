@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useLocation } from 'react-router-dom';
 import { remindersApi } from '../api.js';
 import { useAuth } from './AuthContext.jsx';
+import { useLiveSync, ALL_MODULES } from './LiveSyncContext.jsx';
 
 const RemindersContext = createContext(null);
 
@@ -43,6 +44,8 @@ export function RemindersProvider({ children }) {
       });
     } catch { /* keep showing the last known list */ }
   }, [user.id]);
+
+  useLiveSync(ALL_MODULES, refresh);
 
   // Refetch on every navigation (so changes made on a page are reflected), when
   // the app regains focus, and periodically.

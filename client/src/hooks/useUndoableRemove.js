@@ -30,7 +30,7 @@ export function useUndoableRemove({ items, setItems, apiRemove, label, onCommitt
 
   useEffect(() => () => { [...pending.current.keys()].forEach(commit); }, [commit]);
 
-  return useCallback((id) => {
+  const remove = useCallback((id) => {
     const item = itemsRef.current.find((i) => i.id === id);
     if (!item) return;
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -48,4 +48,8 @@ export function useUndoableRemove({ items, setItems, apiRemove, label, onCommitt
       },
     });
   }, [commit, label, setItems, toast]);
+
+  // For live refetches: drop items whose delete is still in its undo window.
+  remove.withoutPending = (list) => list.filter((i) => !pending.current.has(i.id));
+  return remove;
 }

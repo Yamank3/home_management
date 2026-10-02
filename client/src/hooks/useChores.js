@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { choresApi } from '../api.js';
 import { useUndoableRemove } from './useUndoableRemove.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 
 export function useChores() {
   const [chores, setChores] = useState([]);
@@ -10,7 +11,7 @@ export function useChores() {
   const fetchAll = async () => {
     try {
       const data = await choresApi.getAll();
-      setChores(data);
+      setChores(remove.withoutPending(data));
     } catch (e) {
       setError(e.message);
     }
@@ -20,6 +21,8 @@ export function useChores() {
     setLoading(true);
     fetchAll().finally(() => setLoading(false));
   }, []);
+
+  useLiveSync(['chores'], fetchAll);
 
   const create = async (data) => {
     const chore = await choresApi.create(data);

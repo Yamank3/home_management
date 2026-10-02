@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { inventoryApi } from '../api.js';
+import { useLiveSync } from '../context/LiveSyncContext.jsx';
 
 export function useInventory() {
   const [items, setItems] = useState([]);
@@ -28,6 +29,13 @@ export function useInventory() {
     if (categoryFilter) params.category = categoryFilter;
     fetchAll(params);
   }, [search, categoryFilter, fetchAll]);
+
+  useLiveSync(['inventory'], () => {
+    const params = {};
+    if (search) params.search = search;
+    if (categoryFilter) params.category = categoryFilter;
+    fetchAll(params);
+  });
 
   const create = async (data) => {
     const item = await inventoryApi.create(data);
