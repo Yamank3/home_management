@@ -367,6 +367,25 @@ The service worker (via `vite-plugin-pwa`) is already wired up. Add Web Push to 
 
 ---
 
+### Android App (debug APK)
+
+The Android app is the web app wrapped with Capacitor (`client/android`). It talks to the server named in
+`client/.env.android`, so deploy the latest server first.
+
+Build tools: JDK 21 and the Android SDK (platform 36, build-tools 36.0.0). Then, from `client/`:
+
+```bash
+export JAVA_HOME=/path/to/jdk-21 ANDROID_HOME=/path/to/Android/Sdk
+npm run android:apk
+```
+
+The APK is written to `client/android/app/build/outputs/apk/debug/app-debug.apk`; copy it to a phone and install
+it (allow "install unknown apps"). Re-run `npm run icons` after changing the logo, and `npm run android:open`
+to use Android Studio instead. A Play Store release additionally needs a signing key and an `.aab`
+(`./gradlew bundleRelease`).
+
+---
+
 ### Live Sync (done)
 
 When anyone in the household changes something, everyone else's open screen updates by itself. The server keeps
