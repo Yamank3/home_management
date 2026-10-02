@@ -381,7 +381,13 @@ npm run android:apk
 
 The APK is written to `client/android/app/build/outputs/apk/debug/app-debug.apk`; copy it to a phone and install
 it (allow "install unknown apps"). Re-run `npm run icons` after changing the logo, and `npm run android:open`
-to use Android Studio instead. A Play Store release additionally needs a signing key and an `.aab`
+to use Android Studio instead.
+
+**Testing against your own PC (no deploy needed):** start the server (`npm run dev` in the repo root), run
+`npm run android:local` in `client/`, then press Run in Android Studio. The emulator reaches your PC at
+`10.0.2.2` (set in `client/.env.android-local`; use your LAN IP for a physical phone). This uses a debug-only
+manifest that allows plain-http, so it can't leak into a release build. Run `npm run android:apk` to go back to
+the production configuration. A Play Store release additionally needs a signing key and an `.aab`
 (`./gradlew bundleRelease`).
 
 ---

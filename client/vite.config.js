@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       // The native app bundles its own assets; a service worker would only add stale-cache risk.
-      disable: mode === 'android',
+      disable: mode.startsWith('android'),
       registerType: 'autoUpdate',
       manifest: {
         name: 'Home Management',

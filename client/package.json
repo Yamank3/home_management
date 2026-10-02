@@ -10,7 +10,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "build:android": "vite build --mode android && cap sync android",
     "android:open": "cap open android",
-    "android:apk": "npm run build:android && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run build:android && cd android && ./gradlew assembleDebug",
+    "android:local": "vite build --mode android-local && cap sync android && node scripts/patch-android-local.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
